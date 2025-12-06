@@ -1,0 +1,178 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Veterinario{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            padding-top: 56px; /* Altura del navbar */
+        }
+        .navbar {
+            background-color: #1ed1da;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            height: 56px;
+        }
+        .sidebar {
+            background-color: #fff;
+            position: fixed;
+            top: 56px; /* Altura del navbar */
+            left: 0;
+            bottom: 0;
+            width: 250px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 1020;
+            padding: 1.5rem 1rem;
+        }
+        .sidebar .nav-link {
+            color: #333;
+            padding: 0.75rem 1rem;
+            border-radius: 5px;
+            margin: 0.25rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #1ed1da;
+            color: white;
+            text-decoration: none;
+        }
+        .sidebar .nav-link.active {
+            background-color: #1ed1da;
+            color: white;
+        }
+        .sidebar .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+        .main-content {
+            margin-left: 250px; /* Ancho del sidebar */
+            padding: 2rem;
+            min-height: calc(100vh - 56px);
+        }
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card i {
+            font-size: 2.5rem;
+            color: #1ed1da;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        /* Scrollbar personalizado para sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="javascript:void(0);" onclick="window.location.reload();" style="cursor: pointer;">
+                <i class="bi bi-heart-pulse"></i> Veterinaria Pamela
+            </a>
+            <div class="ms-auto d-flex align-items-center">
+                <!-- Dropdown de usuario -->
+                <div class="dropdown">
+                    <a class="btn btn-link text-white text-decoration-none dropdown-toggle d-flex align-items-center" href="#" role="button" id="dropdownUserMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-2"></i>
+                        <span>{{ user.username }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUserMenu">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'vet_perfil' %}">
+                                <i class="bi bi-person me-2"></i> Mi Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h5 class="mb-3 fw-bold">Menú</h5>
+        <nav class="nav flex-column">
+            <a class="nav-link {% if request.resolver_match.url_name == 'vet_veterinario' %}active{% endif %}" href="{% url 'vet_veterinario' %}">
+                <i class="bi bi-house-door"></i>
+                <span>Dashboard</span>
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name|slice:':10' == 'vet_pacient' %}active{% endif %}" href="{% url 'vet_pacientes' %}">
+                <i class="bi bi-heart"></i>
+                <span>Pacientes</span>
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name|slice:':10' == 'vet_fichas' %}active{% endif %}" href="{% url 'vet_fichas_clinicas' %}">
+                <i class="bi bi-file-medical"></i>
+                <span>Fichas Clínicas</span>
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name|slice:':9' == 'vet_agenda' or request.resolver_match.url_name|slice:':9' == 'vet_citas' %}active{% endif %}" href="{% url 'vet_agenda' %}">
+                <i class="bi bi-calendar-check"></i>
+                <span>Agenda</span>
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name|slice:':10' == 'vet_consulta' %}active{% endif %}" href="{% url 'vet_consultas' %}">
+                <i class="bi bi-clipboard-pulse"></i>
+                <span>Consultas</span>
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name|slice:':10' == 'vet_vacuna' %}active{% endif %}" href="{% url 'vet_vacunas' %}">
+                <i class="bi bi-shield-check"></i>
+                <span>Vacunas</span>
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name|slice:':11' == 'vet_inventario' %}active{% endif %}" href="{% url 'vet_inventario' %}">
+                <i class="bi bi-box-seam"></i>
+                <span>Inventario</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% block contenido %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

@@ -1,94 +1,65 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vacunas - Veterinario</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        body { background-color: #f8f9fa; }
-        .navbar { background-color: #1ed1da; }
-        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'vet_veterinario' %}">
-                <i class="bi bi-heart-pulse"></i> Veterinaria Pamela
-            </a>
-            <div class="ms-auto">
-                <a href="{% url 'vet_veterinario' %}" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
-                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Salir</a>
-            </div>
-        </div>
-    </nav>
+{% extends 'gestorUser/veterinario/base_veterinario.html' %}
 
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="bi bi-shield-check"></i> Historial de Vacunas</h2>
-            {% if paciente %}
-            <a href="{% url 'vet_vacuna_registrar' paciente.id %}" class="btn btn-primary">
+{% block titulo %}Vacunas - Veterinario{% endblock %}
+
+{% block contenido %}
+    <h2 class="mb-4"><i class="bi bi-shield-check"></i> Historial de Vacunas</h2>
+
+    {% if paciente %}
+    <div class="alert alert-info d-flex justify-content-between align-items-center">
+        <div>
+            <i class="bi bi-info-circle"></i> Mostrando vacunas de: <strong>{{ paciente.nombre }}</strong>
+        </div>
+        <div>
+            <a href="{% url 'vet_paciente_detalle' paciente.id %}" class="btn btn-sm btn-info me-2">Ver Paciente</a>
+            <a href="{% url 'vet_vacuna_registrar' paciente.id %}" class="btn btn-sm btn-primary">
                 <i class="bi bi-plus-circle"></i> Registrar Vacuna
             </a>
-            {% endif %}
-        </div>
-
-        {% if paciente %}
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> Mostrando vacunas de: <strong>{{ paciente.nombre }}</strong>
-            <a href="{% url 'vet_paciente_detalle' paciente.id %}" class="btn btn-sm btn-info ms-2">Ver Paciente</a>
-        </div>
-        {% endif %}
-
-        <div class="card">
-            <div class="card-body">
-                {% if vacunas %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Fecha Aplicación</th>
-                                    <th>Vacuna</th>
-                                    <th>Paciente</th>
-                                    <th>Próxima Aplicación</th>
-                                    <th>Lote</th>
-                                    <th>Veterinario</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for vacuna in vacunas %}
-                                <tr>
-                                    <td>{{ vacuna.fecha_aplicacion|date:"d/m/Y" }}</td>
-                                    <td><strong>{{ vacuna.nombre_vacuna }}</strong></td>
-                                    <td>
-                                        <a href="{% url 'vet_paciente_detalle' vacuna.mascota.id %}">
-                                            {{ vacuna.mascota.nombre }}
-                                        </a>
-                                    </td>
-                                    <td>{{ vacuna.fecha_proxima|date:"d/m/Y"|default:"-" }}</td>
-                                    <td>{{ vacuna.lote|default:"-" }}</td>
-                                    <td>{{ vacuna.veterinario.username|default:"-" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="alert alert-info text-center">
-                        <i class="bi bi-info-circle"></i> No se encontraron vacunas registradas.
-                        {% if paciente %}
-                        <a href="{% url 'vet_vacuna_registrar' paciente.id %}" class="alert-link">Registrar primera vacuna</a>
-                        {% endif %}
-                    </div>
-                {% endif %}
-            </div>
         </div>
     </div>
+    {% endif %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
+    <div class="card">
+        <div class="card-body">
+            {% if vacunas %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha Aplicación</th>
+                                <th>Vacuna</th>
+                                <th>Paciente</th>
+                                <th>Próxima Aplicación</th>
+                                <th>Lote</th>
+                                <th>Veterinario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vacuna in vacunas %}
+                            <tr>
+                                <td>{{ vacuna.fecha_aplicacion|date:"d/m/Y" }}</td>
+                                <td><strong>{{ vacuna.nombre_vacuna }}</strong></td>
+                                <td>
+                                    <a href="{% url 'vet_paciente_detalle' vacuna.mascota.id %}">
+                                        {{ vacuna.mascota.nombre }}
+                                    </a>
+                                </td>
+                                <td>{{ vacuna.fecha_proxima|date:"d/m/Y"|default:"-" }}</td>
+                                <td>{{ vacuna.lote|default:"-" }}</td>
+                                <td>{{ vacuna.veterinario.username|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle"></i> No se encontraron vacunas registradas.
+                    {% if paciente %}
+                    <a href="{% url 'vet_vacuna_registrar' paciente.id %}" class="alert-link">Registrar primera vacuna</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

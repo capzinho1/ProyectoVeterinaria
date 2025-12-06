@@ -1,250 +1,122 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Veterinario</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-        }
-        .navbar {
-            background-color: #1ed1da;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
-            transition: transform 0.2s;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-        .stat-card i {
-            font-size: 2.5rem;
-            color: #1ed1da;
-        }
-        .sidebar {
-            background-color: #fff;
-            min-height: calc(100vh - 56px);
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        }
-        .sidebar .nav-link {
-            color: #333;
-            padding: 0.75rem 1rem;
-            border-radius: 5px;
-            margin: 0.25rem 0;
-        }
-        .sidebar .nav-link:hover {
-            background-color: #1ed1da;
-            color: white;
-        }
-        .sidebar .nav-link.active {
-            background-color: #1ed1da;
-            color: white;
-        }
-    </style>
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'vet_veterinario' %}">
-                <i class="bi bi-heart-pulse"></i> Veterinaria Pamela
-            </a>
-            <div class="ms-auto">
-                <span class="text-white me-3">Bienvenido, {{ user.username }}</span>
-                <a href="{% url 'vet_perfil' %}" class="btn btn-outline-light btn-sm me-2">
-                    <i class="bi bi-person-circle"></i> Mi Perfil
-                </a>
-                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-box-arrow-right"></i> Salir
-                </a>
+{% extends 'gestorUser/veterinario/base_veterinario.html' %}
+
+{% block titulo %}Dashboard Veterinario{% endblock %}
+
+{% block contenido %}
+    <h2 class="mb-4">Dashboard Veterinario</h2>
+
+    <!-- Estadísticas -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="stat-card text-center">
+                <i class="bi bi-heart"></i>
+                <h3>{{ total_pacientes }}</h3>
+                <p class="text-muted mb-0">Pacientes Activos</p>
             </div>
         </div>
-    </nav>
-
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-2 sidebar p-3">
-                <h5 class="mb-3">Menú</h5>
-                <nav class="nav flex-column">
-                    <a class="nav-link active" href="{% url 'vet_veterinario' %}">
-                        <i class="bi bi-house-door"></i> Dashboard
-                    </a>
-                    <a class="nav-link" href="{% url 'vet_perfil' %}">
-                        <i class="bi bi-person"></i> Mi Perfil
-                    </a>
-                    <a class="nav-link" href="{% url 'vet_pacientes' %}">
-                        <i class="bi bi-heart"></i> Pacientes
-                    </a>
-                    <a class="nav-link" href="{% url 'vet_fichas_clinicas' %}">
-                        <i class="bi bi-file-medical"></i> Fichas Clínicas
-                    </a>
-                    <a class="nav-link" href="{% url 'vet_agenda' %}">
-                        <i class="bi bi-calendar-check"></i> Agenda
-                    </a>
-                    <a class="nav-link" href="{% url 'vet_consultas' %}">
-                        <i class="bi bi-clipboard-pulse"></i> Consultas
-                    </a>
-                    <a class="nav-link" href="{% url 'vet_recetas' %}">
-                        <i class="bi bi-prescription"></i> Recetas
-                    </a>
-                    <a class="nav-link" href="{% url 'vet_vacunas' %}">
-                        <i class="bi bi-shield-check"></i> Vacunas
-                    </a>
-                    <a class="nav-link" href="{% url 'vet_tratamientos' %}">
-                        <i class="bi bi-capsule"></i> Tratamientos
-                    </a>
-                    <a class="nav-link" href="{% url 'vet_inventario' %}">
-                        <i class="bi bi-box-seam"></i> Inventario
-                    </a>
-                </nav>
+        <div class="col-md-4">
+            <div class="stat-card text-center">
+                <i class="bi bi-hourglass-split"></i>
+                <h3>{{ consultas_pendientes }}</h3>
+                <p class="text-muted mb-0">Consultas Pendientes</p>
             </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card text-center">
+                <i class="bi bi-calendar-event"></i>
+                <h3>{{ citas_hoy }}</h3>
+                <p class="text-muted mb-0">Citas Hoy</p>
+            </div>
+        </div>
+    </div>
 
-            <!-- Main Content -->
-            <div class="col-md-10 p-4">
-                <h2 class="mb-4">Dashboard Veterinario</h2>
-
-                <!-- Estadísticas -->
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="stat-card text-center">
-                            <i class="bi bi-heart"></i>
-                            <h3>{{ total_pacientes }}</h3>
-                            <p class="text-muted mb-0">Pacientes Activos</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card text-center">
-                            <i class="bi bi-clipboard-pulse"></i>
-                            <h3>{{ consultas_hoy }}</h3>
-                            <p class="text-muted mb-0">Consultas Hoy</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card text-center">
-                            <i class="bi bi-hourglass-split"></i>
-                            <h3>{{ consultas_pendientes }}</h3>
-                            <p class="text-muted mb-0">Consultas Pendientes</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card text-center">
-                            <i class="bi bi-calendar-event"></i>
-                            <h3>{{ citas_hoy }}</h3>
-                            <p class="text-muted mb-0">Citas Hoy</p>
-                        </div>
-                    </div>
+    <!-- Consultas Recientes -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Consultas Recientes</h5>
                 </div>
-
-                <!-- Consultas Recientes -->
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Consultas Recientes</h5>
-                            </div>
-                            <div class="card-body">
-                                {% if consultas_recientes %}
-                                    <div class="list-group">
-                                        {% for consulta in consultas_recientes %}
-                                        <a href="{% url 'vet_consulta_detalle' consulta.id %}" class="list-group-item list-group-item-action">
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <h6 class="mb-1">{{ consulta.mascota.nombre }}</h6>
-                                                <small>{{ consulta.fecha_consulta|date:"d/m/Y H:i" }}</small>
-                                            </div>
-                                            <p class="mb-1">{{ consulta.motivo|truncatechars:50 }}</p>
-                                            <small class="badge bg-{% if consulta.estado == 'completada' %}success{% elif consulta.estado == 'en_proceso' %}warning{% else %}secondary{% endif %}">
-                                                {{ consulta.get_estado_display }}
-                                            </small>
-                                        </a>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <p class="text-muted">No hay consultas recientes</p>
-                                {% endif %}
-                                <a href="{% url 'vet_consultas' %}" class="btn btn-primary btn-sm mt-3">Ver Todas</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Citas Próximas -->
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Citas Próximas</h5>
-                            </div>
-                            <div class="card-body">
-                                {% if citas_proximas %}
-                                    <div class="list-group">
-                                        {% for cita in citas_proximas %}
-                                        <a href="{% url 'vet_cita_detalle' cita.id %}" class="list-group-item list-group-item-action">
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <h6 class="mb-1">{{ cita.mascota }}</h6>
-                                                <small>{{ cita.fecha|date:"d/m/Y" }} {{ cita.hora|time:"H:i" }}</small>
-                                            </div>
-                                            <p class="mb-1">{{ cita.motivo|truncatechars:50|default:"Sin motivo especificado" }}</p>
-                                            <small class="text-muted">Propietario: {{ cita.user.username }}</small>
-                                        </a>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <p class="text-muted">No hay citas próximas</p>
-                                {% endif %}
-                                <a href="{% url 'vet_agenda' %}" class="btn btn-success btn-sm mt-3">Ver Agenda</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Acciones Rápidas -->
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Acciones Rápidas</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-3 mb-2">
-                                        <a href="{% url 'vet_paciente_crear' %}" class="btn btn-primary w-100">
-                                            <i class="bi bi-plus-circle"></i> Nuevo Paciente
-                                        </a>
-                                    </div>
-                                    <div class="col-md-3 mb-2">
-                                        <a href="{% url 'vet_consulta_crear' %}" class="btn btn-success w-100">
-                                            <i class="bi bi-clipboard-plus"></i> Nueva Consulta
-                                        </a>
-                                    </div>
-                                    <div class="col-md-3 mb-2">
-                                        <a href="{% url 'vet_inventario' %}" class="btn btn-warning w-100">
-                                            <i class="bi bi-box-seam"></i> Ver Inventario
-                                        </a>
-                                    </div>
-                                    <div class="col-md-3 mb-2">
-                                        <a href="{% url 'vet_inventario_alertas' %}" class="btn btn-danger w-100">
-                                            <i class="bi bi-exclamation-triangle"></i> Alertas Stock
-                                        </a>
-                                    </div>
+                <div class="card-body">
+                    {% if consultas_recientes %}
+                        <div class="list-group">
+                            {% for consulta in consultas_recientes %}
+                            <a href="{% url 'vet_consulta_detalle' consulta.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ consulta.mascota.nombre }}</h6>
+                                    <small>{{ consulta.fecha_consulta|date:"d/m/Y H:i" }}</small>
                                 </div>
-                            </div>
+                                <p class="mb-1">{{ consulta.motivo|truncatechars:50 }}</p>
+                                <small class="badge bg-{% if consulta.estado == 'completada' %}success{% elif consulta.estado == 'en_proceso' %}warning{% else %}secondary{% endif %}">
+                                    {{ consulta.get_estado_display }}
+                                </small>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No hay consultas recientes</p>
+                    {% endif %}
+                    <a href="{% url 'vet_consultas' %}" class="btn btn-primary btn-sm mt-3">Ver Todas</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Citas Próximas -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Citas Próximas</h5>
+                </div>
+                <div class="card-body">
+                    {% if citas_proximas %}
+                        <div class="list-group">
+                            {% for cita in citas_proximas %}
+                            <a href="{% url 'vet_cita_detalle' cita.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ cita.mascota }}</h6>
+                                    <small>{{ cita.fecha|date:"d/m/Y" }} {{ cita.hora|time:"H:i" }}</small>
+                                </div>
+                                <p class="mb-1">{{ cita.motivo|truncatechars:50|default:"Sin motivo especificado" }}</p>
+                                <small class="text-muted">Propietario: {{ cita.user.username }}</small>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No hay citas próximas</p>
+                    {% endif %}
+                    <a href="{% url 'vet_agenda' %}" class="btn btn-success btn-sm mt-3">Ver Agenda</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Acciones Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <a href="{% url 'vet_pacientes' %}" class="btn btn-primary w-100">
+                                <i class="bi bi-heart"></i> Ver Pacientes
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{% url 'vet_agenda' %}" class="btn btn-success w-100">
+                                <i class="bi bi-calendar-check"></i> Ver Agenda
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{% url 'vet_consultas' %}" class="btn btn-info w-100">
+                                <i class="bi bi-clipboard-pulse"></i> Ver Consultas
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
+{% endblock %}

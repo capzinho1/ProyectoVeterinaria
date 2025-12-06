@@ -195,6 +195,26 @@ LOGIN_URL = 'accounts/login/'  # Esto redirige a la página de login cuando un u
 LOGIN_REDIRECT_URL = 'login_redirect'
 LOGOUT_REDIRECT_URL = 'index'
 
+# Configuración de sesiones
+# Usar sesiones en memoria para desarrollo: se pierden al reiniciar el servidor
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+
+# Configurar caché en memoria para sesiones
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+# La sesión expira cuando se cierra el navegador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Tiempo de vida de la cookie de sesión (en segundos)
+# Si el navegador está abierto, la sesión expirará después de 30 minutos de inactividad
+SESSION_COOKIE_AGE = 60 * 30  # 30 minutos
+
 
 
 

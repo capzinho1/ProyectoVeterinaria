@@ -1,105 +1,70 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consultas - Veterinario</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        body { background-color: #f8f9fa; }
-        .navbar { background-color: #1ed1da; }
-        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'vet_veterinario' %}">
-                <i class="bi bi-heart-pulse"></i> Veterinaria Pamela
-            </a>
-            <div class="ms-auto">
-                <a href="{% url 'vet_veterinario' %}" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
-                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Salir</a>
-            </div>
-        </div>
-    </nav>
+{% extends 'gestorUser/veterinario/base_veterinario.html' %}
 
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="bi bi-clipboard-pulse"></i> Consultas Médicas</h2>
-            <a href="{% url 'vet_consulta_crear' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Nueva Consulta
-            </a>
-        </div>
+{% block titulo %}Consultas - Veterinario{% endblock %}
 
-        <!-- Filtros -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="btn-group" role="group">
-                    <a href="?estado=todas" class="btn btn-{% if estado == 'todas' %}primary{% else %}outline-primary{% endif %}">Todas</a>
-                    <a href="?estado=pendientes" class="btn btn-{% if estado == 'pendientes' %}warning{% else %}outline-warning{% endif %}">Pendientes</a>
-                    <a href="?estado=en_proceso" class="btn btn-{% if estado == 'en_proceso' %}info{% else %}outline-info{% endif %}">En Proceso</a>
-                    <a href="?estado=completadas" class="btn btn-{% if estado == 'completadas' %}success{% else %}outline-success{% endif %}">Completadas</a>
-                </div>
-            </div>
-        </div>
+{% block contenido %}
+    <h2 class="mb-4"><i class="bi bi-clipboard-pulse"></i> Consultas Médicas</h2>
 
-        <!-- Lista de Consultas -->
-        <div class="card">
-            <div class="card-body">
-                {% if consultas %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Paciente</th>
-                                    <th>Motivo</th>
-                                    <th>Estado</th>
-                                    <th>Veterinario</th>
-                                    <th>Costo</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for consulta in consultas %}
-                                <tr>
-                                    <td>{{ consulta.fecha_consulta|date:"d/m/Y H:i" }}</td>
-                                    <td><strong>{{ consulta.mascota.nombre }}</strong></td>
-                                    <td>{{ consulta.motivo|truncatechars:50 }}</td>
-                                    <td>
-                                        <span class="badge bg-{% if consulta.estado == 'completada' %}success{% elif consulta.estado == 'en_proceso' %}warning{% elif consulta.estado == 'pendiente' %}secondary{% else %}danger{% endif %}">
-                                            {{ consulta.get_estado_display }}
-                                        </span>
-                                    </td>
-                                    <td>{{ consulta.veterinario.username|default:"-" }}</td>
-                                    <td>${{ consulta.costo|default:"0" }}</td>
-                                    <td>
-                                        <a href="{% url 'vet_consulta_detalle' consulta.id %}" class="btn btn-sm btn-info">
-                                            <i class="bi bi-eye"></i> Ver
-                                        </a>
-                                        <a href="{% url 'vet_consulta_editar' consulta.id %}" class="btn btn-sm btn-warning">
-                                            <i class="bi bi-pencil"></i> Editar
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="alert alert-info text-center">
-                        <i class="bi bi-info-circle"></i> No se encontraron consultas.
-                        <a href="{% url 'vet_consulta_crear' %}" class="alert-link">Crear nueva consulta</a>
-                    </div>
-                {% endif %}
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <a href="?estado=todas" class="btn btn-{% if estado == 'todas' %}primary{% else %}outline-primary{% endif %}">Todas</a>
+                <a href="?estado=pendientes" class="btn btn-{% if estado == 'pendientes' %}warning{% else %}outline-warning{% endif %}">Pendientes</a>
+                <a href="?estado=en_proceso" class="btn btn-{% if estado == 'en_proceso' %}info{% else %}outline-info{% endif %}">En Proceso</a>
+                <a href="?estado=completadas" class="btn btn-{% if estado == 'completadas' %}success{% else %}outline-success{% endif %}">Completadas</a>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
+    <!-- Lista de Consultas -->
+    <div class="card">
+        <div class="card-body">
+            {% if consultas %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Paciente</th>
+                                <th>Motivo</th>
+                                <th>Estado</th>
+                                <th>Veterinario</th>
+                                <th>Costo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for consulta in consultas %}
+                            <tr>
+                                <td>{{ consulta.fecha_consulta|date:"d/m/Y H:i" }}</td>
+                                <td><strong>{{ consulta.mascota.nombre }}</strong></td>
+                                <td>{{ consulta.motivo|truncatechars:50 }}</td>
+                                <td>
+                                    <span class="badge bg-{% if consulta.estado == 'completada' %}success{% elif consulta.estado == 'en_proceso' %}warning{% elif consulta.estado == 'pendiente' %}secondary{% else %}danger{% endif %}">
+                                        {{ consulta.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>{{ consulta.veterinario.username|default:"-" }}</td>
+                                <td>${{ consulta.costo|default:"0" }}</td>
+                                <td>
+                                    <a href="{% url 'vet_consulta_detalle' consulta.id %}" class="btn btn-sm btn-info">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                    <a href="{% url 'vet_consulta_editar' consulta.id %}" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle"></i> No se encontraron consultas.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

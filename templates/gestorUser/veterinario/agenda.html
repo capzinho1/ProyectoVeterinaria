@@ -1,123 +1,106 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda - Veterinario</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% extends 'gestorUser/veterinario/base_veterinario.html' %}
+
+{% block titulo %}Agenda - Veterinario{% endblock %}
+
+{% block extra_css %}
     <style>
-        body { background-color: #f8f9fa; }
-        .navbar { background-color: #1ed1da; }
-        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .cita-item { border-left: 4px solid #1ed1da; padding-left: 1rem; margin-bottom: 1rem; }
     </style>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'vet_veterinario' %}">
-                <i class="bi bi-heart-pulse"></i> Veterinaria Pamela
-            </a>
-            <div class="ms-auto">
-                <a href="{% url 'vet_veterinario' %}" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
-                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Salir</a>
-            </div>
-        </div>
-    </nav>
+{% endblock %}
 
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="bi bi-calendar-check"></i> Agenda</h2>
-            <div>
-                <form method="get" class="d-inline">
-                    <input type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" class="form-control d-inline-block" style="width: auto;">
-                    <button type="submit" class="btn btn-primary">
+{% block contenido %}
+    <h2 class="mb-4"><i class="bi bi-calendar-check"></i> Agenda</h2>
+    
+    <!-- Filtro de Fecha -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Seleccionar Fecha</label>
+                    <input type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
                         <i class="bi bi-search"></i> Buscar
                     </button>
-                </form>
-            </div>
-        </div>
-
-        <div class="row">
-            <!-- Citas del Día -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Citas del {{ fecha|date:"d/m/Y" }}</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if citas_dia %}
-                            {% for cita in citas_dia %}
-                            <div class="cita-item">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">{{ cita.hora|time:"H:i" }} - {{ cita.mascota }}</h6>
-                                        <p class="mb-1"><small>Propietario: {{ cita.user.username }}</small></p>
-                                        {% if cita.motivo %}
-                                        <p class="mb-0"><small>{{ cita.motivo|truncatechars:80 }}</small></p>
-                                        {% endif %}
-                                    </div>
-                                    <a href="{% url 'vet_cita_detalle' cita.id %}" class="btn btn-sm btn-info">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="text-muted text-center">No hay citas programadas para este día</p>
-                        {% endif %}
-                    </div>
                 </div>
-            </div>
+            </form>
+        </div>
+    </div>
 
-            <!-- Citas Próximas -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Próximas Citas (7 días)</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if citas_proximas %}
-                            {% for cita in citas_proximas %}
-                            <div class="cita-item">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">{{ cita.fecha|date:"d/m/Y" }} {{ cita.hora|time:"H:i" }} - {{ cita.mascota }}</h6>
-                                        <p class="mb-1"><small>Propietario: {{ cita.user.username }}</small></p>
-                                        {% if cita.motivo %}
-                                        <p class="mb-0"><small>{{ cita.motivo|truncatechars:80 }}</small></p>
-                                        {% endif %}
-                                    </div>
-                                    <a href="{% url 'vet_cita_detalle' cita.id %}" class="btn btn-sm btn-info">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
+    <div class="row">
+        <!-- Citas del Día -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Citas del {{ fecha|date:"d/m/Y" }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if citas_dia %}
+                        {% for cita in citas_dia %}
+                        <div class="cita-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ cita.hora|time:"H:i" }} - {{ cita.mascota }}</h6>
+                                    <p class="mb-1"><small>Propietario: {{ cita.user.username }}</small></p>
+                                    {% if cita.motivo %}
+                                    <p class="mb-0"><small>{{ cita.motivo|truncatechars:80 }}</small></p>
+                                    {% endif %}
                                 </div>
+                                <a href="{% url 'vet_cita_detalle' cita.id %}" class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
                             </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="text-muted text-center">No hay citas próximas</p>
-                        {% endif %}
-                    </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No hay citas programadas para este día</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <a href="{% url 'vet_citas' %}" class="btn btn-primary">
-                            <i class="bi bi-list-ul"></i> Ver Todas las Citas
-                        </a>
-                    </div>
+        <!-- Citas Próximas -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Próximas Citas (7 días)</h5>
+                </div>
+                <div class="card-body">
+                    {% if citas_proximas %}
+                        {% for cita in citas_proximas %}
+                        <div class="cita-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ cita.fecha|date:"d/m/Y" }} {{ cita.hora|time:"H:i" }} - {{ cita.mascota }}</h6>
+                                    <p class="mb-1"><small>Propietario: {{ cita.user.username }}</small></p>
+                                    {% if cita.motivo %}
+                                    <p class="mb-0"><small>{{ cita.motivo|truncatechars:80 }}</small></p>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'vet_cita_detalle' cita.id %}" class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No hay citas próximas</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <a href="{% url 'vet_citas' %}" class="btn btn-primary">
+                        <i class="bi bi-list-ul"></i> Ver Todas las Citas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

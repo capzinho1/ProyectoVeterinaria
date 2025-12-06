@@ -35,7 +35,7 @@ from gestorUser.models import CitaMedica
 
 @login_required
 def vetInicio(request):
-    productos = Productos.objects.all()[:20]
+    productos = Productos.objects.all().order_by('-id')
 
     # Get user's citas and appointment form
     citas_usuario = []
@@ -129,19 +129,22 @@ def sobreData(request):
 # VISTAS DE ALIMENTO PERRO
 # ===========================
 def alimentoPerroAData(request):
-    paproductos = PAProductos.objects.all()[:20]
+    # Mostrar todos los productos sin límite
+    paproductos = PAProductos.objects.all().order_by('-id')
     return render(request, 'gestorProductos/alimentoPAdulto.html', {'paproductos': paproductos})
 
 def alimentoPerroCData(request):
-    pcproductos = PCProductos.objects.all()[:20]
+    # Mostrar todos los productos sin límite
+    pcproductos = PCProductos.objects.all().order_by('-id')
     return render(request, 'gestorProductos/alimentoPCachorro.html', {'pcproductos': pcproductos})
 
 def alimentoPerroSData(request):
-    psproductos = PSProductos.objects.all()[:20]
+    # Mostrar todos los productos sin límite
+    psproductos = PSProductos.objects.all().order_by('-id')
     return render(request, 'gestorProductos/alimentoPSenior.html', {'psproductos': psproductos})
 
 def antipulgasData(request):
-    aproductos = AProductos.objects.all()[:20]
+    aproductos = AProductos.objects.all().order_by('-id')
     return render(request, 'gestorProductos/antipulgas.html', {'aproductos': aproductos})
 
 # ======================================
@@ -149,7 +152,9 @@ def antipulgasData(request):
 # ======================================
 def eliminarProducto(request, codigo):
     try:
-        producto = Productos.objects.get(codigo=codigo)
+        # Convertir codigo a string ya que en el modelo es CharField pero la URL puede venir como int
+        codigo_str = str(codigo)
+        producto = Productos.objects.get(codigo=codigo_str)
         # Aquí va el código para eliminar el producto
         producto.delete()
         messages.success(request, "Producto eliminado correctamente.")
@@ -157,6 +162,9 @@ def eliminarProducto(request, codigo):
     except Productos.DoesNotExist:
         messages.error(request, f"Producto con código {codigo} no encontrado.")
         return redirect('datatable')  # Redirige a una página donde se pueda ver el error
+    except Exception as e:
+        messages.error(request, f"Error al eliminar el producto: {str(e)}")
+        return redirect('datatable')
 
 
 def editarProducto(request, id):
@@ -981,9 +989,71 @@ def home(request):
             'AProductos': 'General'
         }
         
+        # Mapeo de modelos a URLs de editar y eliminar
+        # Formato: (nombre_modelo, (edit_url_name, edit_param_type, delete_url_name, delete_param_type))
+        urls_map = {
+            'Productos': ('editarProducto', 'id', 'eliminarProducto', 'codigo_int'),
+            'PCProductos': ('editarProductoPC', 'codigo', 'eliminarProductoPC', 'codigo'),
+            'PAProductos': ('editarProductoPA', 'codigo', 'eliminarProductoPA', 'codigo'),
+            'PSProductos': ('editarProductoPS', 'codigo', 'eliminarProductoPS', 'codigo'),
+            'AProductos': ('editarProductoA', 'codigo', 'eliminarProductoA', 'codigo'),
+            'AGAProductos': ('editarProductoAGA', 'codigo', 'eliminarProductoAGA', 'codigo'),
+            'AGCProductos': ('editarProductoAGC', 'codigo', 'eliminarProductoAGC', 'codigo'),
+            'SnackPProductos': ('editarProductoSnackP', 'codigo', 'eliminarProductoSnackP', 'codigo'),
+            'SnackGProductos': ('editarProductoSnackG', 'codigo', 'eliminarProductoSnackG', 'codigo'),
+            'Antiparasitario': ('editarProductoAntiparasitario', 'codigo', 'eliminarProductoAntiparasitario', 'codigo'),
+            'Medicamento': ('editarProductoMedicamento', 'codigo', 'eliminarProductoMedicamento', 'codigo'),
+            'Shampoo': ('editarProductoShampoo', 'codigo', 'eliminarProductoShampoo', 'codigo'),
+            'Cama': ('editarProductoCama', 'codigo', 'eliminarProductoCama', 'codigo'),
+            'Collar': ('editarProductoCollar', 'codigo', 'eliminarProductoCollar', 'codigo'),
+            'Juguete': ('editarProductoJuguete', 'codigo', 'eliminarProductoJuguete', 'codigo'),
+        }
+        
+        from django.urls import reverse
         for model in [Productos, PCProductos, PAProductos, PSProductos, AProductos, AGAProductos, AGCProductos, SnackGProductos, SnackPProductos, Antiparasitario, Medicamento, Shampoo, Cama, Collar, Juguete]:
+            model_name = model.__name__
+            url_config = urls_map.get(model_name, (None, None, None, None))
+            edit_url_name, edit_param, delete_url_name, delete_param = url_config
+            
             for producto in model.objects.order_by('-id')[:5]:
-                producto.categoria_nombre = categorias_map.get(model.__name__, 'Otros')
+                producto.categoria_nombre = categorias_map.get(model_name, 'Otros')
+                # Agregar URLs de editar y eliminar
+                if edit_url_name and delete_url_name:
+                    try:
+                        # Construir URL de editar
+                        if edit_param == 'id':
+                            producto.url_editar = reverse(edit_url_name, args=[producto.id])
+                        elif edit_param == 'codigo' and hasattr(producto, 'codigo'):
+                            producto.url_editar = reverse(edit_url_name, args=[producto.codigo])
+                        else:
+                            producto.url_editar = '#'
+                        
+                        # Construir URL de eliminar
+                        if delete_param == 'codigo_int' and hasattr(producto, 'codigo'):
+                            # Productos usa código como int en la URL pero el código puede ser string
+                            try:
+                                # Intentar convertir a int si es posible, si no usar el código tal cual
+                                codigo_int = int(producto.codigo)
+                                producto.url_eliminar = reverse(delete_url_name, args=[codigo_int])
+                            except (ValueError, TypeError):
+                                # Si no se puede convertir a int, usar el código como string (aunque la URL espera int)
+                                # Esto puede causar un error 404, pero es mejor que no tener URL
+                                try:
+                                    producto.url_eliminar = reverse(delete_url_name, args=[producto.codigo])
+                                except:
+                                    producto.url_eliminar = '#'
+                        elif delete_param == 'codigo' and hasattr(producto, 'codigo'):
+                            producto.url_eliminar = reverse(delete_url_name, args=[producto.codigo])
+                        else:
+                            producto.url_eliminar = '#'
+                    except Exception as e:
+                        # Si hay algún error al construir las URLs, usar '#'
+                        producto.url_editar = '#'
+                        producto.url_eliminar = '#'
+                else:
+                    producto.url_editar = '#'
+                    producto.url_eliminar = '#'
+                
                 productos_recientes.append(producto)
 
         productos_recientes = sorted(productos_recientes, key=lambda x: x.id, reverse=True)[:5]
@@ -1023,15 +1093,17 @@ def guardar_producto(request):
 # VISTAS DE ALIMENTO Y SNACK GATO
 # =================================
 def alimentoGatoAData(request):
-    agaproductos = AGAProductos.objects.all()[:20]
+    # Mostrar todos los productos sin límite
+    agaproductos = AGAProductos.objects.all().order_by('-id')
     return render(request, 'gestorProductos/alimentoGAdulto.html', {'agaproductos': agaproductos})
 
 def alimentoGatoCData(request):
-    agcproductos = AGCProductos.objects.all()
+    # Mostrar todos los productos sin límite
+    agcproductos = AGCProductos.objects.all().order_by('-id')
     return render(request, 'gestorProductos/alimentoGCachorro.html', {'agcproductos': agcproductos})
 
 def Snack_gato(request):
-    snackgproductos = SnackGProductos.objects.all()[:20]
+    snackgproductos = SnackGProductos.objects.all().order_by('-id')
     return render(request, 'gestorProductos/snackGato.html', {'snackgproductos': snackgproductos})
 
 # ===========================
@@ -1039,35 +1111,35 @@ def Snack_gato(request):
 # ===========================
 
 def Snack_Perro(request):
-    snackpproductos = SnackPProductos.objects.all()[:20]
+    snackpproductos = SnackPProductos.objects.all().order_by('-id')
     return render(request, 'gestorProductos/snackPerro.html', {'snackpproductos': snackpproductos})
 
 # ===========================
 # VISTAS DE OTROS PRODUCTOS
 # ===========================
 def medicamentos(request):
-    medicamento = Medicamento.objects.all()[:20]
+    medicamento = Medicamento.objects.all().order_by('-id')
     return render(request, 'gestorProductos/medicamentos.html', {'medicamento': medicamento})
 
 def antiparasitarios(request):
-    antiparasitario = Antiparasitario.objects.all()[:20]
+    antiparasitario = Antiparasitario.objects.all().order_by('-id')
     return render(request, 'gestorProductos/antiparasitario.html', {'antiparasitario': antiparasitario})
 
 
 def shampoos(request):
-    shampoo = Shampoo.objects.all()[:20]
+    shampoo = Shampoo.objects.all().order_by('-id')
     return render(request, 'gestorProductos/shampoo.html', {'shampoo': shampoo})
 
 def camas(request):
-    cama = Cama.objects.all()[:20]
+    cama = Cama.objects.all().order_by('-id')
     return render(request, 'gestorProductos/camas.html', {'cama': cama})
 
 def collares(request):
-    collar = Collar.objects.all()[:20]
+    collar = Collar.objects.all().order_by('-id')
     return render(request, 'gestorProductos/collares.html', {'collar': collar})
 
 def juguetes(request):
-    juguete = Juguete.objects.all()[:20]
+    juguete = Juguete.objects.all().order_by('-id')
     return render(request, 'gestorProductos/juguetes.html', {'juguete': juguete})
 
 # ===========================

@@ -1,111 +1,249 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ titulo }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        body { background-color: #f8f9fa; }
-        .navbar { background-color: #1ed1da; }
-        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'vet_veterinario' %}">
-                <i class="bi bi-heart-pulse"></i> Veterinaria Pamela
-            </a>
-            <div class="ms-auto">
-                {% if paciente %}
-                <a href="{% url 'vet_paciente_detalle' paciente.id %}" class="btn btn-outline-light btn-sm me-2">Volver</a>
-                {% else %}
-                <a href="{% url 'vet_fichas_clinicas' %}" class="btn btn-outline-light btn-sm me-2">Volver</a>
-                {% endif %}
-                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Salir</a>
-            </div>
-        </div>
-    </nav>
+{% extends 'gestorUser/veterinario/base_veterinario.html' %}
 
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-10 mx-auto">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">{{ titulo }}</h4>
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{{ titulo }}</h4>
+                </div>
+                <div class="card-body">
+                    {% if paciente %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Paciente: <strong>{{ paciente.nombre }}</strong>
                     </div>
-                    <div class="card-body">
-                        {% if paciente %}
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i> Paciente: <strong>{{ paciente.nombre }}</strong>
-                        </div>
-                        {% endif %}
+                    {% endif %}
 
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
 
-                        <form method="post">
-                            {% csrf_token %}
-                            
-                            <div class="mb-3">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <h5 class="mb-3">Información Clínica</h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-12">
                                 <label class="form-label">{{ form.historial_medico.label }}</label>
                                 {{ form.historial_medico }}
                                 {% if form.historial_medico.errors %}
                                     <div class="text-danger">{{ form.historial_medico.errors }}</div>
                                 {% endif %}
                             </div>
+                        </div>
 
-                            <div class="mb-3">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
                                 <label class="form-label">{{ form.alergias.label }}</label>
                                 {{ form.alergias }}
                                 {% if form.alergias.errors %}
                                     <div class="text-danger">{{ form.alergias.errors }}</div>
                                 {% endif %}
                             </div>
-
-                            <div class="mb-3">
+                            <div class="col-md-6">
                                 <label class="form-label">{{ form.medicamentos_permanentes.label }}</label>
                                 {{ form.medicamentos_permanentes }}
                                 {% if form.medicamentos_permanentes.errors %}
                                     <div class="text-danger">{{ form.medicamentos_permanentes.errors }}</div>
                                 {% endif %}
                             </div>
+                        </div>
 
-                            <div class="mb-3">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
                                 <label class="form-label">{{ form.notas_generales.label }}</label>
                                 {{ form.notas_generales }}
                                 {% if form.notas_generales.errors %}
                                     <div class="text-danger">{{ form.notas_generales.errors }}</div>
                                 {% endif %}
                             </div>
+                        </div>
 
-                            <div class="d-flex justify-content-between mt-4">
-                                {% if paciente %}
-                                <a href="{% url 'vet_paciente_detalle' paciente.id %}" class="btn btn-secondary">Cancelar</a>
-                                {% else %}
-                                <a href="{% url 'vet_fichas_clinicas' %}" class="btn btn-secondary">Cancelar</a>
-                                {% endif %}
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-save"></i> Guardar
-                                </button>
+                        <hr class="my-4">
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Vacunas (Opcional)</h5>
+                            <button type="button" class="btn btn-sm btn-success" id="agregar-vacuna">
+                                <i class="bi bi-plus-circle"></i> Agregar Vacuna
+                            </button>
+                        </div>
+                        
+                        <div id="vacunas-container">
+                            <!-- Primera vacuna (si existe en el formulario) -->
+                            {% if form.vacuna_nombre %}
+                            <div class="vacuna-item mb-3 p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong>Vacuna #1</strong>
+                                    <button type="button" class="btn btn-sm btn-danger eliminar-vacuna">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </button>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ form.vacuna_nombre.label }}</label>
+                                        {{ form.vacuna_nombre }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">{{ form.vacuna_fecha_aplicacion.label }}</label>
+                                        {{ form.vacuna_fecha_aplicacion }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">{{ form.vacuna_lote.label }}</label>
+                                        {{ form.vacuna_lote }}
+                                    </div>
+                                </div>
                             </div>
-                        </form>
-                    </div>
+                            {% endif %}
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Tratamientos (Opcional)</h5>
+                            <button type="button" class="btn btn-sm btn-success" id="agregar-tratamiento">
+                                <i class="bi bi-plus-circle"></i> Agregar Tratamiento
+                            </button>
+                        </div>
+                        
+                        <div id="tratamientos-container">
+                            <!-- Primer tratamiento (si existe en el formulario) -->
+                            {% if form.tratamiento_nombre %}
+                            <div class="tratamiento-item mb-3 p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong>Tratamiento #1</strong>
+                                    <button type="button" class="btn btn-sm btn-danger eliminar-tratamiento">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </button>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ form.tratamiento_nombre.label }}</label>
+                                        {{ form.tratamiento_nombre }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ form.tratamiento_fecha_inicio.label }}</label>
+                                        {{ form.tratamiento_fecha_inicio }}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="form-label">{{ form.tratamiento_descripcion.label }}</label>
+                                        {{ form.tratamiento_descripcion }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            {% if paciente %}
+                            <a href="{% url 'vet_paciente_detalle' paciente.id %}" class="btn btn-secondary">Cancelar</a>
+                            {% else %}
+                            <a href="{% url 'vet_fichas_clinicas' %}" class="btn btn-secondary">Cancelar</a>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <script>
+        let vacunaCounter = {% if form.vacuna_nombre %}1{% else %}0{% endif %};
+        let tratamientoCounter = {% if form.tratamiento_nombre %}1{% else %}0{% endif %};
+
+        // Agregar nueva vacuna
+        document.getElementById('agregar-vacuna').addEventListener('click', function() {
+            vacunaCounter++;
+            const container = document.getElementById('vacunas-container');
+            const vacunaHtml = `
+                <div class="vacuna-item mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>Vacuna #${vacunaCounter}</strong>
+                        <button type="button" class="btn btn-sm btn-danger eliminar-vacuna">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </button>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre de la Vacuna</label>
+                            <input type="text" name="vacuna_${vacunaCounter}_nombre" class="form-control form-control-sm" 
+                                   placeholder="Ej: Triple viral, Antirrábica">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Fecha de Aplicación</label>
+                            <input type="date" name="vacuna_${vacunaCounter}_fecha" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Lote (opcional)</label>
+                            <input type="text" name="vacuna_${vacunaCounter}_lote" class="form-control form-control-sm" 
+                                   placeholder="Número de lote">
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', vacunaHtml);
+        });
+
+        // Agregar nuevo tratamiento
+        document.getElementById('agregar-tratamiento').addEventListener('click', function() {
+            tratamientoCounter++;
+            const container = document.getElementById('tratamientos-container');
+            const tratamientoHtml = `
+                <div class="tratamiento-item mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>Tratamiento #${tratamientoCounter}</strong>
+                        <button type="button" class="btn btn-sm btn-danger eliminar-tratamiento">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </button>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre del Tratamiento</label>
+                            <input type="text" name="tratamiento_${tratamientoCounter}_nombre" class="form-control form-control-sm" 
+                                   placeholder="Ej: Antibiótico, Desparasitación">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha de Inicio</label>
+                            <input type="date" name="tratamiento_${tratamientoCounter}_fecha" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label class="form-label">Descripción del Tratamiento</label>
+                            <textarea name="tratamiento_${tratamientoCounter}_descripcion" class="form-control form-control-sm" rows="2" 
+                                      placeholder="Descripción breve del tratamiento"></textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', tratamientoHtml);
+        });
+
+        // Eliminar vacuna
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.eliminar-vacuna')) {
+                e.target.closest('.vacuna-item').remove();
+            }
+        });
+
+        // Eliminar tratamiento
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.eliminar-tratamiento')) {
+                e.target.closest('.tratamiento-item').remove();
+            }
+        });
+    </script>
+{% endblock %}
 

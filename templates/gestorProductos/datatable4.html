@@ -236,9 +236,9 @@
     }
 
     $(document).ready(function () {
-        cargarTabla("dt-collares", "{% url 'api_collares' %}", "/editar/collar/", "/eliminar/collar/");
-        cargarTabla("dt-camas", "{% url 'api_camas' %}", "/editar/cama/", "/eliminar/cama/");
-        cargarTabla("dt-juguetes", "{% url 'api_juguetes' %}", "/editar/juguete/", "/eliminar/juguete/");
+        cargarTabla("dt-collares", "{% url 'api_collares' %}", "/productos/editar/collar/", "/productos/eliminar/collar/");
+        cargarTabla("dt-camas", "{% url 'api_camas' %}", "/productos/editar/cama/", "/productos/eliminar/cama/");
+        cargarTabla("dt-juguetes", "{% url 'api_juguetes' %}", "/productos/editar/juguete/", "/productos/eliminar/juguete/");
     });
 
     function mostrarTabla(categoria) {

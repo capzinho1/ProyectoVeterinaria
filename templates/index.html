@@ -158,24 +158,38 @@
                                 <canvas id="myPieChart"></canvas>
                             </div>
                             <div class="mt-4 text-center small">
-                                <span class="mr-2">
-                                    <i class="fas fa-circle text-primary"></i> Alimentos Perro
-                                </span>
-                                <span class="mr-2">
-                                    <i class="fas fa-circle text-success"></i> Alimentos Gato
-                                </span>
-                                <span class="mr-2">
-                                    <i class="fas fa-circle text-info"></i> Snacks
-                                </span>
-                                <span class="mr-2">
-                                    <i class="fas fa-circle text-warning"></i> Medicamentos
-                                </span>
-                                <span class="mr-2">
-                                    <i class="fas fa-circle text-danger"></i> Accesorios
-                                </span>
-                                <span class="mr-2">
-                                    <i class="fas fa-circle text-secondary"></i> Otros
-                                </span>
+                                <div class="row">
+                                    <div class="col-6 mb-2">
+                                        <span style="color: #4e73df;"><i class="fas fa-circle"></i></span>
+                                        <strong>Alimentos Perro:</strong> 
+                                        <span id="legenda-perro">0</span>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <span style="color: #1cc88a;"><i class="fas fa-circle"></i></span>
+                                        <strong>Alimentos Gato:</strong> 
+                                        <span id="legenda-gato">0</span>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <span style="color: #36b9cc;"><i class="fas fa-circle"></i></span>
+                                        <strong>Snacks:</strong> 
+                                        <span id="legenda-snacks">0</span>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <span style="color: #f6c23e;"><i class="fas fa-circle"></i></span>
+                                        <strong>Medicamentos:</strong> 
+                                        <span id="legenda-medicamentos">0</span>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <span style="color: #e74a3b;"><i class="fas fa-circle"></i></span>
+                                        <strong>Accesorios:</strong> 
+                                        <span id="legenda-accesorios">0</span>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <span style="color: #858796;"><i class="fas fa-circle"></i></span>
+                                        <strong>Otros:</strong> 
+                                        <span id="legenda-otros">0</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -195,23 +209,40 @@
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
+                                            <th>Código</th>
                                             <th>Nombre</th>
                                             <th>Precio</th>
                                             <th>Stock</th>
                                             <th>Categoría</th>
+                                            <th>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for producto in productos_recientes %}
                                             <tr>
+                                                <td>{{ producto.codigo|default:"-" }}</td>
                                                 <td>{{ producto.nombre }}</td>
                                                 <td>${{ producto.precio|floatformat:2 }}</td>
                                                 <td>{{ producto.stock }}</td>
                                                 <td>{{ producto.categoria_nombre|default:"General" }}</td>
+                                                <td>
+                                                    {% if producto.url_editar != '#' %}
+                                                        <a href="{{ producto.url_editar }}" class="btn btn-warning btn-sm me-1" title="Editar">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <a href="{{ producto.url_eliminar }}" class="btn btn-danger btn-sm" 
+                                                           onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')" 
+                                                           title="Eliminar">
+                                                            <i class="fas fa-trash"></i>
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
                                             </tr>
                                         {% empty %}
                                             <tr>
-                                                <td colspan="4" class="text-center">No hay productos recientes</td>
+                                                <td colspan="6" class="text-center">No hay productos recientes</td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>
@@ -354,7 +385,7 @@ function number_format(number, decimals, dec_point, thousands_sep) {
 
 // Esperar a que el DOM esté completamente cargado
 $(document).ready(function() {
-    // Inicializar DataTable para productos recientes
+    // Inicializar DataTable para productos recientes SIN búsqueda
     if ($('#dataTable').length) {
         $('#dataTable').DataTable({
             language: {
@@ -366,7 +397,7 @@ $(document).ready(function() {
                 "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
                 "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
                 "sInfoPostFix": "",
-                "sSearch": "Buscar:",
+                "sSearch": "",
                 "sUrl": "",
                 "sInfoThousands": ",",
                 "sLoadingRecords": "Cargando...",
@@ -383,7 +414,9 @@ $(document).ready(function() {
             },
             pageLength: 5,
             responsive: true,
-            order: [[0, 'desc']]
+            order: [[0, 'asc']],
+            searching: false, // Desactivar búsqueda
+            dom: 'rtip' // Remover el input de búsqueda del DOM
         });
     }
 
@@ -396,15 +429,38 @@ $(document).ready(function() {
             var areaCtx = document.getElementById("myAreaChart");
             
             if (pieCtx) {
+                // Ordenar los datos en el mismo orden que la leyenda
+                var labels = ["Alimentos_Perro", "Alimentos_Gato", "Snacks", "Medicamentos", "Accesorios", "Otros"];
+                var colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796'];
+                var hoverColors = ['#2e59d9', '#17a673', '#2c9faf', '#f4b619', '#e02d1b', '#6c757d'];
+                
+                // Obtener valores en el orden correcto
+                var dataValues = [
+                    categoriasData['Alimentos_Perro'] || 0,
+                    categoriasData['Alimentos_Gato'] || 0,
+                    categoriasData['Snacks'] || 0,
+                    categoriasData['Medicamentos'] || 0,
+                    categoriasData['Accesorios'] || 0,
+                    categoriasData['Otros'] || 0
+                ];
+                
+                // Actualizar leyenda con valores reales
+                document.getElementById('legenda-perro').textContent = dataValues[0] || 0;
+                document.getElementById('legenda-gato').textContent = dataValues[1] || 0;
+                document.getElementById('legenda-snacks').textContent = dataValues[2] || 0;
+                document.getElementById('legenda-medicamentos').textContent = dataValues[3] || 0;
+                document.getElementById('legenda-accesorios').textContent = dataValues[4] || 0;
+                document.getElementById('legenda-otros').textContent = dataValues[5] || 0;
+                
                 // Pie Chart Example
                 var myPieChart = new Chart(pieCtx, {
                     type: 'doughnut',
                     data: {
                         labels: ["Alimentos Perro", "Alimentos Gato", "Snacks", "Medicamentos", "Accesorios", "Otros"],
                         datasets: [{
-                            data: Object.values(categoriasData),
-                            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796'],
-                            hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#f4b619', '#e02d1b', '#6c757d'],
+                            data: dataValues,
+                            backgroundColor: colors,
+                            hoverBackgroundColor: hoverColors,
                             hoverBorderColor: "rgba(234, 236, 244, 1)",
                         }],
                     },
@@ -417,8 +473,17 @@ $(document).ready(function() {
                                 borderColor: '#dddfeb',
                                 borderWidth: 1,
                                 padding: 15,
-                                displayColors: false,
+                                displayColors: true,
                                 caretPadding: 10,
+                                callbacks: {
+                                    label: function(context) {
+                                        var label = context.label || '';
+                                        var value = context.parsed || 0;
+                                        var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        var percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return label + ': ' + value + ' (' + percentage + '%)';
+                                    }
+                                }
                             },
                             legend: {
                                 display: false

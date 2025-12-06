@@ -257,9 +257,9 @@
     }
 
     $(document).ready(function(){
-        cargarTablaSinMarca("dt-antiparasitario", "{% url 'api_antiparasitario' %}", "/editar/antiparasitario/", "/eliminar/antiparasitario/");
-        cargarTablaConMarca("dt-shampoo", "{% url 'api_shampoo' %}", "/editar/shampoo/", "/eliminar/shampoo/");
-        cargarTablaSinMarca("dt-medicamentos", "{% url 'api_medicamento' %}", "/editar/medicamento/", "/eliminar/medicamento/");
+        cargarTablaSinMarca("dt-antiparasitario", "{% url 'api_antiparasitario' %}", "/productos/editar/antiparasitario/", "/productos/eliminar/antiparasitario/");
+        cargarTablaConMarca("dt-shampoo", "{% url 'api_shampoo' %}", "/productos/editar/shampoo/", "/productos/eliminar/shampoo/");
+        cargarTablaSinMarca("dt-medicamentos", "{% url 'api_medicamento' %}", "/productos/editar/medicamento/", "/productos/eliminar/medicamento/");
     });
 
     function mostrarTabla(cat) {

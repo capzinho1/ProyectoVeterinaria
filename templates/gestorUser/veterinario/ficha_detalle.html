@@ -1,37 +1,44 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ficha Clínica - {{ ficha.mascota.nombre }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        body { background-color: #f8f9fa; }
-        .navbar { background-color: #1ed1da; }
-        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'vet_veterinario' %}">
-                <i class="bi bi-heart-pulse"></i> Veterinaria Pamela
-            </a>
-            <div class="ms-auto">
-                <a href="{% url 'vet_fichas_clinicas' %}" class="btn btn-outline-light btn-sm me-2">Volver</a>
-                <a href="{% url 'vet_veterinario' %}" class="btn btn-outline-light btn-sm">Dashboard</a>
-            </div>
-        </div>
-    </nav>
+{% extends 'gestorUser/veterinario/base_veterinario.html' %}
 
-    <div class="container mt-4">
+{% block titulo %}Ficha Clínica - {{ ficha.mascota.nombre }}{% endblock %}
+
+{% block contenido %}
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="bi bi-file-medical"></i> Ficha Clínica - {{ ficha.mascota.nombre }}</h2>
             <a href="{% url 'vet_ficha_editar' ficha.id %}" class="btn btn-warning">
                 <i class="bi bi-pencil"></i> Editar
             </a>
+        </div>
+
+        <!-- Resumen Financiero -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-cash-coin"></i> Resumen Financiero</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <h6 class="text-muted">Total Consultas</h6>
+                                <h3 class="text-primary">{{ total_consultas }}</h3>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">Costo Total</h6>
+                                <h3 class="text-info">${{ costo_total|floatformat:0 }}</h3>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">Pagado</h6>
+                                <h3 class="text-success">${{ costo_pagado|floatformat:0 }}</h3>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">Pendiente</h6>
+                                <h3 class="text-danger">${{ costo_pendiente|floatformat:0 }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="row">
@@ -93,6 +100,60 @@
                     </div>
                 </div>
                 {% endif %}
+
+                <!-- Consultas con Costos -->
+                {% if consultas %}
+                <div class="card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Historial de Consultas</h5>
+                        <a href="{% url 'vet_consultas' %}?mascota={{ ficha.mascota.id }}" class="btn btn-sm btn-light">
+                            Ver todas
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Motivo</th>
+                                        <th>Estado</th>
+                                        <th class="text-end">Costo</th>
+                                        <th class="text-center">Pagado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for consulta in consultas|slice:":10" %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'vet_consulta_detalle' consulta.id %}">
+                                                {{ consulta.fecha_consulta|date:"d/m/Y H:i" }}
+                                            </a>
+                                        </td>
+                                        <td>{{ consulta.motivo|truncatechars:40 }}</td>
+                                        <td>
+                                            <span class="badge bg-{% if consulta.estado == 'completada' %}success{% elif consulta.estado == 'en_proceso' %}warning{% else %}secondary{% endif %}">
+                                                {{ consulta.get_estado_display }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong class="text-success">${{ consulta.costo|floatformat:0 }}</strong>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if consulta.pagada %}
+                                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Sí</span>
+                                            {% else %}
+                                                <span class="badge bg-warning"><i class="bi bi-clock"></i> No</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <div class="col-md-4">
@@ -101,17 +162,37 @@
                         <h5 class="mb-0">Historial</h5>
                     </div>
                     <div class="card-body">
-                        <h6>Consultas</h6>
+                        <h6>Consultas Recientes</h6>
                         {% if consultas %}
                             <ul class="list-group mb-3">
                                 {% for consulta in consultas|slice:":5" %}
                                 <li class="list-group-item">
-                                    <a href="{% url 'vet_consulta_detalle' consulta.id %}">
-                                        {{ consulta.fecha_consulta|date:"d/m/Y" }}
-                                    </a>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <a href="{% url 'vet_consulta_detalle' consulta.id %}">
+                                                {{ consulta.fecha_consulta|date:"d/m/Y" }}
+                                            </a>
+                                            <br>
+                                            <small class="text-muted">{{ consulta.motivo|truncatechars:30 }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <strong class="text-success">${{ consulta.costo|floatformat:0 }}</strong>
+                                            <br>
+                                            {% if consulta.pagada %}
+                                                <span class="badge bg-success">Pagada</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">Pendiente</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </li>
                                 {% endfor %}
                             </ul>
+                            {% if consultas.count > 5 %}
+                                <a href="{% url 'vet_consultas' %}?mascota={{ ficha.mascota.id }}" class="btn btn-sm btn-outline-primary w-100">
+                                    Ver todas las consultas
+                                </a>
+                            {% endif %}
                         {% else %}
                             <p class="text-muted">No hay consultas</p>
                         {% endif %}
@@ -145,9 +226,5 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}
 

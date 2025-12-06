@@ -36,7 +36,11 @@ from .forms import (
     ConsultaForm, RecetaForm, PrescripcionForm, VacunaForm, TratamientoForm,
     EgresoMedicamentoForm
 )
-from gestorProductos.models import Medicamento, Antiparasitario
+from gestorProductos.models import (
+    Medicamento, Antiparasitario, Productos, PCProductos, PAProductos,
+    PSProductos, AProductos, AGAProductos, AGCProductos, SnackGProductos,
+    SnackPProductos, Shampoo, Cama, Collar, Juguete
+)
 
 
 # ==================== FUNCIONES HELPER ====================
@@ -354,12 +358,24 @@ def vet_ficha_detalle(request, ficha_id):
         mascota=ficha.mascota
     ).order_by('-fecha_inicio')
     
+    # ========== CALCULAR RESUMEN FINANCIERO ==========
+    # Calcular totales de costos de las consultas
+    from django.db.models import Sum
+    total_consultas = consultas.count()
+    costo_total = consultas.aggregate(total=Sum('costo'))['total'] or 0
+    costo_pagado = consultas.filter(pagada=True).aggregate(total=Sum('costo'))['total'] or 0
+    costo_pendiente = costo_total - costo_pagado
+    
     # Renderizar template con toda la información de la ficha clínica
     return render(request, 'gestorUser/veterinario/ficha_detalle.html', {
         'ficha': ficha,              # Información de la ficha clínica
         'consultas': consultas,      # Historial completo de consultas
         'vacunas': vacunas,          # Historial completo de vacunas
-        'tratamientos': tratamientos # Historial completo de tratamientos
+        'tratamientos': tratamientos, # Historial completo de tratamientos
+        'total_consultas': total_consultas,  # Total de consultas
+        'costo_total': costo_total,           # Costo total de todas las consultas
+        'costo_pagado': costo_pagado,         # Costo total pagado
+        'costo_pendiente': costo_pendiente    # Costo pendiente de pago
     })
 
 
@@ -392,17 +408,8 @@ def vet_ficha_crear(request, paciente_id):
         # Crear formulario con los datos enviados
         form = FichaClinicaForm(request.POST)
         if form.is_valid():
-            # Guardar sin commit para agregar información adicional
-            ficha = form.save(commit=False)
-            
-            # Asignar el paciente al que pertenece esta ficha
-            ficha.mascota = paciente
-            
-            # Asignar el veterinario actual como responsable de la ficha
-            ficha.veterinario = request.user
-            
-            # Guardar la ficha clínica en la base de datos
-            ficha.save()
+            # Guardar la ficha clínica junto con múltiples vacunas y tratamientos si se proporcionaron
+            ficha = form.save(commit=True, mascota=paciente, veterinario=request.user, request_data=request.POST)
             
             # Mostrar mensaje de éxito
             messages.success(request, "Ficha clínica creada correctamente.")
@@ -433,9 +440,8 @@ def vet_ficha_editar(request, ficha_id):
     if request.method == 'POST':
         form = FichaClinicaForm(request.POST, instance=ficha)
         if form.is_valid():
-            ficha = form.save(commit=False)
-            ficha.veterinario = request.user
-            ficha.save()
+            # Guardar la ficha clínica junto con múltiples vacunas y tratamientos si se proporcionaron
+            ficha = form.save(commit=True, mascota=ficha.mascota, veterinario=request.user, request_data=request.POST)
             messages.success(request, "Ficha clínica actualizada correctamente.")
             return redirect('vet_ficha_detalle', ficha_id=ficha.id)
     else:
@@ -557,7 +563,13 @@ def vet_consultas(request):
         return check
     
     estado = request.GET.get('estado', 'todas')
+    mascota_id = request.GET.get('mascota', None)
+    
     consultas = Consulta.objects.select_related('mascota', 'veterinario').order_by('-fecha_consulta')
+    
+    # Filtrar por mascota si se proporciona
+    if mascota_id:
+        consultas = consultas.filter(mascota_id=mascota_id)
     
     if estado == 'pendientes':
         consultas = consultas.filter(estado='pendiente')
@@ -568,7 +580,8 @@ def vet_consultas(request):
     
     return render(request, 'gestorUser/veterinario/consultas_lista.html', {
         'consultas': consultas,
-        'estado': estado
+        'estado': estado,
+        'mascota_filtro': mascota_id  # Para mantener el filtro en el template
     })
 
 
@@ -960,63 +973,183 @@ def vet_tratamiento_registrar(request, paciente_id):
 @login_required
 def vet_inventario(request):
     """
-    Vista para ver el inventario completo de medicamentos.
-    Muestra medicamentos y antiparasitarios con sus stocks disponibles.
+    Vista para ver el inventario completo de todos los productos.
+    Muestra todos los productos (medicamentos, alimentos, accesorios, etc.)
+    ordenados alfabéticamente con sus stocks disponibles.
     """
     # Verificar permisos de veterinario
     check = verificar_veterinario(request)
     if check:
         return check
     
-    # Obtener todos los medicamentos ordenados alfabéticamente por nombre
-    medicamentos = Medicamento.objects.all().order_by('nombre')
+    # ========== OBTENER TODOS LOS PRODUCTOS AGRUPADOS POR CATEGORÍA ==========
+    # Diccionario para almacenar productos agrupados por categoría
+    productos_por_categoria = {}
     
-    # Obtener todos los antiparasitarios ordenados alfabéticamente por nombre
-    antiparasitarios = Antiparasitario.objects.all().order_by('nombre')
+    # Función helper para normalizar productos y agregarlos a su categoría
+    def agregar_productos(queryset, tipo_producto):
+        """Agrega productos del queryset a la categoría correspondiente"""
+        if queryset.count() == 0:
+            return  # No agregar categorías vacías
+        
+        productos_categoria = []
+        for producto in queryset:
+            # Normalizar precio (algunos son Integer, otros DecimalField)
+            precio = float(producto.precio)
+            
+            # Normalizar descripción (algunos son CharField, otros TextField)
+            descripcion = getattr(producto, 'descripcion', '')
+            if not descripcion:
+                descripcion = getattr(producto, 'marca', '')
+            
+            # Obtener marca si existe
+            marca = getattr(producto, 'marca', '')
+            
+            productos_categoria.append({
+                'codigo': producto.codigo,
+                'nombre': producto.nombre,
+                'marca': marca,
+                'descripcion': descripcion,
+                'precio': precio,
+                'stock': producto.stock,
+                'tipo': tipo_producto,
+                'objeto': producto  # Guardar referencia al objeto original
+            })
+        
+        # Ordenar productos de esta categoría alfabéticamente por nombre
+        productos_categoria.sort(key=lambda x: x['nombre'].lower())
+        productos_por_categoria[tipo_producto] = productos_categoria
+    
+    # Obtener todos los productos de cada modelo y agregarlos agrupados por categoría
+    agregar_productos(Medicamento.objects.all(), 'Medicamento')
+    agregar_productos(Antiparasitario.objects.all(), 'Antiparasitario')
+    agregar_productos(Productos.objects.all(), 'Producto General')
+    agregar_productos(PCProductos.objects.all(), 'Alimento Perro Cachorro')
+    agregar_productos(PAProductos.objects.all(), 'Alimento Perro Adulto')
+    agregar_productos(PSProductos.objects.all(), 'Alimento Perro Senior')
+    agregar_productos(AProductos.objects.all(), 'Alimento General')
+    agregar_productos(AGAProductos.objects.all(), 'Alimento Gato Adulto')
+    agregar_productos(AGCProductos.objects.all(), 'Alimento Gato Cachorro')
+    agregar_productos(SnackGProductos.objects.all(), 'Snack Gato')
+    agregar_productos(SnackPProductos.objects.all(), 'Snack Perro')
+    agregar_productos(Shampoo.objects.all(), 'Shampoo')
+    agregar_productos(Cama.objects.all(), 'Cama')
+    agregar_productos(Collar.objects.all(), 'Collar')
+    agregar_productos(Juguete.objects.all(), 'Juguete')
+    
+    # Crear lista plana de todos los productos para estadísticas
+    todos_los_productos = []
+    for categoria, productos in productos_por_categoria.items():
+        todos_los_productos.extend(productos)
     
     # ========== CALCULAR ESTADÍSTICAS DEL INVENTARIO ==========
-    # Contar el total de medicamentos diferentes en el inventario
-    total_medicamentos = medicamentos.count()
+    total_productos = len(todos_los_productos)
+    total_stock = sum(p['stock'] for p in todos_los_productos)
     
-    # Sumar el stock total de todos los medicamentos
-    # aggregate() realiza una operación de agregación SQL (SUM en este caso)
-    # ['stock__sum'] accede al resultado de la suma, or 0 evita None si no hay registros
-    total_stock_med = medicamentos.aggregate(Sum('stock'))['stock__sum'] or 0
+    # Contar productos por nivel de stock
+    productos_criticos = sum(1 for p in todos_los_productos if p['stock'] < 10)
+    productos_bajos = sum(1 for p in todos_los_productos if 10 <= p['stock'] < 20)
+    productos_normales = sum(1 for p in todos_los_productos if p['stock'] >= 20)
     
-    # Renderizar template con el inventario y estadísticas
+    # Renderizar template con el inventario agrupado por categoría y estadísticas
     return render(request, 'gestorUser/veterinario/inventario.html', {
-        'medicamentos': medicamentos,        # Lista de todos los medicamentos
-        'antiparasitarios': antiparasitarios, # Lista de todos los antiparasitarios
-        'total_medicamentos': total_medicamentos,  # Total de tipos de medicamentos
-        'total_stock_med': total_stock_med        # Suma total de unidades en stock
+        'productos_por_categoria': productos_por_categoria,  # Diccionario de categorías con sus productos
+        'total_productos': total_productos,                  # Total de productos diferentes
+        'total_stock': total_stock,                          # Suma total de unidades en stock
+        'productos_criticos': productos_criticos,            # Productos con stock < 10
+        'productos_bajos': productos_bajos,                  # Productos con stock 10-19
+        'productos_normales': productos_normales             # Productos con stock >= 20
     })
 
 
 @login_required
 def vet_inventario_alertas(request):
     """
-    Vista para ver alertas de productos con stock bajo.
-    Muestra medicamentos y antiparasitarios con menos de 10 unidades disponibles.
+    Vista para ver alertas de productos con stock bajo o crítico.
+    Muestra solo productos con stock menor a 20 unidades (críticos < 10 y bajos 10-19),
+    agrupados por categoría para facilitar la visualización rápida.
     """
     # Verificar permisos de veterinario
     check = verificar_veterinario(request)
     if check:
         return check
     
-    # ========== ALERTAS DE MEDICAMENTOS ==========
-    # Filtrar medicamentos con stock menor a 10 unidades
-    # stock__lt=10 significa "stock less than 10" (stock menor que 10)
-    # Ordenar por stock ascendente (los que tienen menos stock aparecen primero)
-    alertas_medicamentos = Medicamento.objects.filter(stock__lt=10).order_by('stock')
+    # ========== OBTENER PRODUCTOS CON STOCK BAJO O CRÍTICO AGRUPADOS POR CATEGORÍA ==========
+    # Diccionario para almacenar productos agrupados por categoría
+    productos_por_categoria = {}
     
-    # ========== ALERTAS DE ANTIPARASITARIOS ==========
-    # Mismo criterio para antiparasitarios: stock menor a 10 unidades
-    alertas_antiparasitarios = Antiparasitario.objects.filter(stock__lt=10).order_by('stock')
+    # Función helper para normalizar productos y agregarlos a su categoría
+    # Solo incluye productos con stock < 20 (críticos < 10 o bajos 10-19)
+    def agregar_productos_alertas(queryset, tipo_producto):
+        """Agrega productos del queryset que tengan stock < 20 a la categoría correspondiente"""
+        # Filtrar solo productos con stock menor a 20
+        productos_filtrados = queryset.filter(stock__lt=20)
+        
+        if productos_filtrados.count() == 0:
+            return  # No agregar categorías vacías
+        
+        productos_categoria = []
+        for producto in productos_filtrados:
+            # Normalizar precio (algunos son Integer, otros DecimalField)
+            precio = float(producto.precio)
+            
+            # Normalizar descripción (algunos son CharField, otros TextField)
+            descripcion = getattr(producto, 'descripcion', '')
+            if not descripcion:
+                descripcion = getattr(producto, 'marca', '')
+            
+            # Obtener marca si existe
+            marca = getattr(producto, 'marca', '')
+            
+            productos_categoria.append({
+                'codigo': producto.codigo,
+                'nombre': producto.nombre,
+                'marca': marca,
+                'descripcion': descripcion,
+                'precio': precio,
+                'stock': producto.stock,
+                'tipo': tipo_producto,
+                'objeto': producto  # Guardar referencia al objeto original
+            })
+        
+        # Ordenar productos de esta categoría por stock ascendente (los más críticos primero)
+        # y luego alfabéticamente por nombre
+        productos_categoria.sort(key=lambda x: (x['stock'], x['nombre'].lower()))
+        productos_por_categoria[tipo_producto] = productos_categoria
     
-    # Renderizar template con las alertas
+    # Obtener todos los productos con stock bajo o crítico de cada modelo
+    agregar_productos_alertas(Medicamento.objects.all(), 'Medicamento')
+    agregar_productos_alertas(Antiparasitario.objects.all(), 'Antiparasitario')
+    agregar_productos_alertas(Productos.objects.all(), 'Producto General')
+    agregar_productos_alertas(PCProductos.objects.all(), 'Alimento Perro Cachorro')
+    agregar_productos_alertas(PAProductos.objects.all(), 'Alimento Perro Adulto')
+    agregar_productos_alertas(PSProductos.objects.all(), 'Alimento Perro Senior')
+    agregar_productos_alertas(AProductos.objects.all(), 'Alimento General')
+    agregar_productos_alertas(AGAProductos.objects.all(), 'Alimento Gato Adulto')
+    agregar_productos_alertas(AGCProductos.objects.all(), 'Alimento Gato Cachorro')
+    agregar_productos_alertas(SnackGProductos.objects.all(), 'Snack Gato')
+    agregar_productos_alertas(SnackPProductos.objects.all(), 'Snack Perro')
+    agregar_productos_alertas(Shampoo.objects.all(), 'Shampoo')
+    agregar_productos_alertas(Cama.objects.all(), 'Cama')
+    agregar_productos_alertas(Collar.objects.all(), 'Collar')
+    agregar_productos_alertas(Juguete.objects.all(), 'Juguete')
+    
+    # Crear lista plana de todos los productos con alertas para estadísticas
+    todos_los_productos = []
+    for categoria, productos in productos_por_categoria.items():
+        todos_los_productos.extend(productos)
+    
+    # ========== CALCULAR ESTADÍSTICAS DE ALERTAS ==========
+    total_productos_alertas = len(todos_los_productos)
+    productos_criticos = sum(1 for p in todos_los_productos if p['stock'] < 10)
+    productos_bajos = sum(1 for p in todos_los_productos if 10 <= p['stock'] < 20)
+    
+    # Renderizar template con las alertas agrupadas por categoría
     return render(request, 'gestorUser/veterinario/inventario_alertas.html', {
-        'alertas_medicamentos': alertas_medicamentos,        # Medicamentos con stock bajo
-        'alertas_antiparasitarios': alertas_antiparasitarios # Antiparasitarios con stock bajo
+        'productos_por_categoria': productos_por_categoria,  # Diccionario de categorías con productos en alerta
+        'total_productos_alertas': total_productos_alertas,  # Total de productos con stock bajo/crítico
+        'productos_criticos': productos_criticos,            # Productos con stock < 10
+        'productos_bajos': productos_bajos                   # Productos con stock 10-19
     })
 
 

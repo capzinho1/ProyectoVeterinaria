@@ -92,7 +92,7 @@
         }
 
         .navbar-search button:hover {
-            background-color: #cc942a;
+            background-color: #17b7c0;
         }
 
         /* Tarjetas */
@@ -113,7 +113,7 @@
 
         /* Modal */
         .modal-header {
-            background-color: #f3b73f;
+            background-color: #17b7c0;
             color: white;
         }
 
@@ -125,7 +125,7 @@
         }
 
         .quantity-control button {
-            background-color: #f3b73f;
+            background-color: #17b7c0;
             border: none;
             color: white;
             width: 35px;
@@ -162,7 +162,7 @@
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
-            <a class="navbar-brand text-white ms-2" href="{% url 'vet_inicio' %}"></a>
+            <a class="navbar-brand text-white ms-2" href="/vet_inicio/"></a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarNav">
@@ -174,7 +174,7 @@
                 <!-- MENÚ IZQUIERDA -->
                 <ul class="navbar-nav p-2 ms-5">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'vet_inicio' %}">Inicio</a>
+                        <a class="nav-link" href="/vet_inicio/">Inicio</a>
                     </li>
 
                     <!-- DESPLEGABLE DE CATEGORÍAS -->
@@ -186,41 +186,41 @@
                              <li class="dropdown-submenu">
                                 <a class="dropdown-item dropdown-toggle" href="#">🐶 Perros</a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'perro_adulto'%}">Alimento Perro adulto</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'perro_cachorro'%}">Alimento Perro cachorro</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'perro_senior'%}">Alimento Perro Senior</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'snack_perro'%}">Snacks</a></li>
+                                    <li><a class="dropdown-item" href="/productos/alimento-perro-adulto/">Alimento Perro adulto</a></li>
+                                    <li><a class="dropdown-item" href="/productos/alimento-perro-cachorro/">Alimento Perro cachorro</a></li>
+                                    <li><a class="dropdown-item" href="/productos/alimento-perro-senior/">Alimento Perro Senior</a></li>
+                                    <li><a class="dropdown-item" href="/productos/snack-perro/">Snacks</a></li>
                                 </ul>
                             </li>
                             <li class="dropdown-submenu">
                                 <a class="dropdown-item dropdown-toggle" href="#">🐱 Gatos</a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'gato_adulto'%}">Alimento Gato Adulto </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'gato_cachorro'%}">Alimento Gato Cachorro</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'snack_gato'%}">Snacks</a></li>
+                                    <li><a class="dropdown-item" href="/productos/alimento-gato-adulto/">Alimento Gato Adulto </a></li>
+                                    <li><a class="dropdown-item" href="/productos/alimento-gato-cachorro/">Alimento Gato Cachorro</a></li>
+                                    <li><a class="dropdown-item" href="/productos/snack-gato/">Snacks</a></li>
                                 </ul>
                             </li>
                             <li class="dropdown-submenu">
                                 <a class="dropdown-item dropdown-toggle" href="#">💊 Medicamentos</a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'antiparasitario'%}">Antiparasitarios</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'shampoos'%}">Shampoo</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'medicamentos'%}">Otros medicamentos</a></li>
+                                    <li><a class="dropdown-item" href="/productos/antiparasitario/">Antiparasitarios</a></li>
+                                    <li><a class="dropdown-item" href="/productos/shampoos/">Shampoo</a></li>
+                                    <li><a class="dropdown-item" href="/productos/medicamentos/">Otros medicamentos</a></li>
                                 </ul>
                             </li>
                             <li class="dropdown-submenu">
                                 <a class="dropdown-item dropdown-toggle" href="#">🦴 Accesorios</a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'collares'%}">Collares y correas</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'camas'%}">Camas y mantas</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'juguetes'%}">Juguetes</a></li>
+                                    <li><a class="dropdown-item" href="/productos/collares/">Collares y correas</a></li>
+                                    <li><a class="dropdown-item" href="/productos/camas/">Camas y mantas</a></li>
+                                    <li><a class="dropdown-item" href="/productos/juguetes/">Juguetes</a></li>
                                 </ul>
                             </li>
                         </ul>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'sobre_nosotros' %}">Sobre Nosotros</a>
+                        <a class="nav-link" href="/productos/sobreNosotros/">Sobre Nosotros</a>
                     </li>
                 </ul>
 
@@ -234,24 +234,24 @@
                 <div class="d-flex align-items-center ms-auto gap-3">
                     <ul class="navbar-nav">
                         <li class="nav-item me-3">
-                            <a class="nav-link" href="{% url 'ver_carrito' %}"><i class="bi bi-cart3"></i> Carrito</a>
+                            <a class="nav-link" href="/productos/carrito/"><i class="bi bi-cart3"></i> Carrito</a>
                         </li>
                         {% if user.is_authenticated %}
                         <li class="nav-item me-3">
-                            <a class="nav-link btn btn-outline-light" href="{% url 'agendar_cita' %}">Agendar Cita</a>
+                            <a class="nav-link btn btn-outline-light" href="/usuarios/citas/agendar/">Agendar Cita</a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="perfilDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-person-circle"></i> {{ user.username }}
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="perfilDropdown">
                                 <li><a class="dropdown-item" href="#">Mi Perfil</a></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                                <li><a class="dropdown-item" href="/logout">Cerrar Sesión</a></li>
                             </ul>
                         </li>
                         {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}"><i class="bi bi-person-circle"></i> Iniciar Sesión</a>
+                            <a class="nav-link" href="/accounts/login/"><i class="bi bi-person-circle"></i> Iniciar Sesión</a>
                         </li>
                         {% endif %}
                     </ul>
@@ -278,11 +278,13 @@
             {% for producto in paproductos %}
             <div class="col-md-4 mb-4 d-flex justify-content-center">
                 <div class="card">
-                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                    <img src="https://via.placeholder.com/300x300/1ed1da/ffffff?text={{ producto.nombre|urlencode }}" alt="{{ producto.nombre }}" style="width: 100%; height: 250px; object-fit: cover;">
                     <div class="card-body text-center">
                         <h5 class="card-title">{{ producto.nombre }}</h5>
+                        <p><strong>Marca:</strong> {{ producto.marca }}</p>
                         <p>{{ producto.descripcion|truncatechars:60 }}</p>
                         <p><strong>${{ producto.precio }}</strong></p>
+                        <p><small class="text-muted">Stock: {{ producto.stock }}</small></p>
                         <button class="btn btn-primary text-white"
                             data-bs-toggle="modal"
                             data-bs-target="#productoModal"
@@ -291,7 +293,7 @@
                             data-nombre="{{ producto.nombre }}"
                             data-descripcion="{{ producto.descripcion }}"
                             data-precio="{{ producto.precio }}"
-                            data-imagen="{{ producto.imagen.url }}">
+                            data-imagen="https://via.placeholder.com/300x300/1ed1da/ffffff?text={{ producto.nombre|urlencode }}">
                             Ver Detalle
                         </button>
                     </div>
@@ -338,45 +340,34 @@
         </div>
     </div>
 
-    <!-- SCRIPTS -->
+    <!-- Bootstrap JS Bundle - Debe cargarse primero -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts personalizados - Después de Bootstrap -->
     <script>
-        // Modal
-        const modal = document.getElementById('productoModal');
-        modal.addEventListener('show.bs.modal', event => {
-            const button = event.relatedTarget;
-            const id = button.getAttribute('data-id');
-            const nombre = button.getAttribute('data-nombre');
-            const descripcion = button.getAttribute('data-descripcion');
-            const precio = button.getAttribute('data-precio');
-            const imagen = button.getAttribute('data-imagen');
-
-            document.getElementById('productoModalLabel').textContent = nombre;
-            const tipo = button.getAttribute('data-tipo');
-            
-            document.getElementById('productoDescripcion').textContent = descripcion;
-            document.getElementById('productoPrecio').textContent = '$' + precio;
-            document.getElementById('productoImagen').src = imagen;
-
-            document.getElementById('formAgregar').action = `/carrito/agregar/${tipo}/${id}/`;
-        });
-
-        document.getElementById('increaseBtn').addEventListener('click', () => {
-            const input = document.getElementById('cantidadInput');
-            input.value = parseInt(input.value) + 1;
-        });
-
-        document.getElementById('decreaseBtn').addEventListener('click', () => {
-            const input = document.getElementById('cantidadInput');
-            if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
-        });
-
-        // Submenús
+        // Esperar a que el DOM y Bootstrap estén completamente cargados
         document.addEventListener('DOMContentLoaded', function() {
-            const dropdownSubmenus = document.querySelectorAll('.dropdown-submenu > a');
-            dropdownSubmenus.forEach(el => {
-                el.addEventListener('click', function(e) {
+            // Inicializar dropdowns de Bootstrap 5
+            const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
+            dropdownElementList.forEach(function(dropdownToggleEl) {
+                new bootstrap.Dropdown(dropdownToggleEl);
+            });
+
+            // Manejar submenús personalizados
+            document.querySelectorAll('.dropdown-submenu > .dropdown-toggle').forEach(function(element) {
+                element.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Cerrar otros submenús abiertos
+                    document.querySelectorAll('.dropdown-submenu .dropdown-menu.show')
+                        .forEach(open => {
+                            if (open !== this.nextElementSibling) {
+                                open.classList.remove('show');
+                            }
+                        });
+                    
+                    // Toggle del submenú actual
                     const submenu = this.nextElementSibling;
                     if (submenu && submenu.classList.contains('dropdown-menu')) {
                         submenu.classList.toggle('show');
@@ -384,11 +375,61 @@
                 });
             });
 
+            // Cerrar submenús al hacer click fuera
             document.addEventListener('click', function(e) {
-                if (!e.target.closest('.dropdown-menu') && !e.target.closest('.dropdown-submenu')) {
-                    document.querySelectorAll('.dropdown-menu.show').forEach(menu => menu.classList.remove('show'));
+                if (!e.target.closest('.dropdown-submenu')) {
+                    document.querySelectorAll('.dropdown-submenu .dropdown-menu.show')
+                        .forEach(menu => menu.classList.remove('show'));
                 }
             });
+
+            // Modal
+            const modal = document.getElementById('productoModal');
+            if (modal) {
+                modal.addEventListener('show.bs.modal', event => {
+                    const button = event.relatedTarget;
+                    const id = button.getAttribute('data-id');
+                    const nombre = button.getAttribute('data-nombre');
+                    const descripcion = button.getAttribute('data-descripcion');
+                    const precio = button.getAttribute('data-precio');
+                    const imagen = button.getAttribute('data-imagen');
+
+                    document.getElementById('productoModalLabel').textContent = nombre;
+                    const tipo = button.getAttribute('data-tipo');
+                    
+                    document.getElementById('productoDescripcion').textContent = descripcion;
+                    document.getElementById('productoPrecio').textContent = '$' + precio;
+                    
+                    const imgElement = document.getElementById('productoImagen');
+                    if (imgElement && imagen) {
+                        imgElement.src = imagen;
+                    }
+
+                    const formAgregar = document.getElementById('formAgregar');
+                    if (formAgregar) {
+                        formAgregar.action = `/productos/carrito/agregar/${tipo}/${id}/`;
+                    }
+                });
+            }
+
+            // Botones de cantidad
+            const increaseBtn = document.getElementById('increaseBtn');
+            if (increaseBtn) {
+                increaseBtn.addEventListener('click', () => {
+                    const input = document.getElementById('cantidadInput');
+                    if (input) input.value = parseInt(input.value) + 1;
+                });
+            }
+
+            const decreaseBtn = document.getElementById('decreaseBtn');
+            if (decreaseBtn) {
+                decreaseBtn.addEventListener('click', () => {
+                    const input = document.getElementById('cantidadInput');
+                    if (input && parseInt(input.value) > 1) {
+                        input.value = parseInt(input.value) - 1;
+                    }
+                });
+            }
         });
     </script>
 </body>

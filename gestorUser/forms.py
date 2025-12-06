@@ -274,14 +274,30 @@ class VeterinarioProfileForm(forms.ModelForm):
 # ==================== FORMULARIOS DEL SISTEMA DE VETERINARIO ====================
 
 class MascotaForm(forms.ModelForm):
+    """
+    Formulario para crear/editar mascotas.
+    
+    El campo 'propietario' es un campo de texto libre donde se ingresa el nombre
+    del propietario. Si el usuario existe, se asocia; si no existe, se crea automáticamente.
+    """
+    # Campo personalizado para propietario: texto libre en lugar de select
+    propietario_nombre = forms.CharField(
+        max_length=150,
+        label='Nombre del Propietario',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese el nombre del propietario'
+        })
+    )
+    
     class Meta:
         model = Mascota
         fields = [
-            'propietario', 'nombre', 'tipo_mascota', 'raza', 'sexo', 'fecha_nacimiento',
-            'color', 'peso', 'observaciones', 'activa'
+            'nombre', 'tipo_mascota', 'raza', 'sexo', 'fecha_nacimiento',
+            'color', 'peso', 'observaciones'
         ]
         widgets = {
-            'propietario': forms.Select(attrs={'class': 'form-select'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo_mascota': forms.Select(attrs={'class': 'form-select'}),
             'raza': forms.TextInput(attrs={'class': 'form-control'}),
@@ -290,28 +306,242 @@ class MascotaForm(forms.ModelForm):
             'color': forms.TextInput(attrs={'class': 'form-control'}),
             'peso': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'activa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filtrar usuarios que no sean veterinarios ni admin
-        from django.contrib.auth.models import User
-        self.fields['propietario'].queryset = User.objects.filter(is_staff=False, is_superuser=False)
+        # Si estamos editando una mascota existente, prellenar el campo de propietario
+        if self.instance and self.instance.pk and self.instance.propietario:
+            self.fields['propietario_nombre'].initial = self.instance.propietario.username
+    
+    def clean_propietario_nombre(self):
+        """
+        Valida el nombre del propietario si se proporciona.
+        """
+        nombre = self.cleaned_data.get('propietario_nombre')
+        if nombre:
+            return nombre.strip()
+        return nombre
+    
+    def save(self, commit=True):
+        """
+        Guarda la mascota y busca o crea el usuario propietario automáticamente.
+        
+        Si el usuario con ese nombre existe, lo asocia; si no existe, crea un nuevo
+        usuario automáticamente con ese nombre. Si no se proporciona nombre, no se
+        asigna propietario.
+        """
+        mascota = super().save(commit=False)
+        
+        # Obtener el nombre del propietario del campo personalizado
+        propietario_nombre = self.cleaned_data.get('propietario_nombre')
+        
+        # Solo crear/buscar propietario si se proporciona un nombre
+        if propietario_nombre and propietario_nombre.strip():
+            # Buscar si el usuario existe, si no, crearlo
+            from django.contrib.auth.models import User
+            propietario, created = User.objects.get_or_create(
+                username=propietario_nombre.strip(),
+                defaults={
+                    'email': f'{propietario_nombre.lower().replace(" ", ".")}@ejemplo.com',
+                    'first_name': propietario_nombre.split()[0] if propietario_nombre.split() else propietario_nombre,
+                }
+            )
+            # Asignar el propietario a la mascota
+            mascota.propietario = propietario
+        
+        # El campo 'activa' siempre será True por defecto (según el modelo)
+        mascota.activa = True
+        
+        if commit:
+            mascota.save()
+        return mascota
 
 
 class FichaClinicaForm(forms.ModelForm):
+    """
+    Formulario para crear/editar fichas clínicas.
+    Incluye campos opcionales para agregar vacunas y tratamientos directamente.
+    """
+    # Campos opcionales para agregar vacuna directamente
+    vacuna_nombre = forms.CharField(
+        max_length=200,
+        label='Nombre de la Vacuna',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-sm',
+            'placeholder': 'Ej: Triple viral, Antirrábica'
+        })
+    )
+    vacuna_fecha_aplicacion = forms.DateField(
+        label='Fecha de Aplicación',
+        required=False,
+        widget=DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control form-control-sm'
+        })
+    )
+    vacuna_lote = forms.CharField(
+        max_length=100,
+        label='Lote (opcional)',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-sm',
+            'placeholder': 'Número de lote'
+        })
+    )
+    
+    # Campos opcionales para agregar tratamiento directamente
+    tratamiento_nombre = forms.CharField(
+        max_length=200,
+        label='Nombre del Tratamiento',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-sm',
+            'placeholder': 'Ej: Antibiótico, Desparasitación'
+        })
+    )
+    tratamiento_fecha_inicio = forms.DateField(
+        label='Fecha de Inicio',
+        required=False,
+        widget=DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control form-control-sm'
+        })
+    )
+    tratamiento_descripcion = forms.CharField(
+        label='Descripción del Tratamiento',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control form-control-sm',
+            'rows': 2,
+            'placeholder': 'Descripción breve del tratamiento'
+        })
+    )
+    
     class Meta:
         model = FichaClinica
         fields = [
             'historial_medico', 'alergias', 'medicamentos_permanentes', 'notas_generales'
         ]
         widgets = {
-            'historial_medico': forms.Textarea(attrs={'class': 'form-control', 'rows': 6}),
-            'alergias': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'medicamentos_permanentes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'notas_generales': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'historial_medico': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 3}),
+            'alergias': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2}),
+            'medicamentos_permanentes': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2}),
+            'notas_generales': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2}),
         }
+    
+    def save(self, commit=True, mascota=None, veterinario=None, request_data=None):
+        """
+        Guarda la ficha clínica y opcionalmente crea múltiples vacunas y tratamientos si se proporcionaron.
+        """
+        ficha = super().save(commit=False)
+        
+        if mascota:
+            ficha.mascota = mascota
+        if veterinario:
+            ficha.veterinario = veterinario
+        
+        if commit:
+            ficha.save()
+            
+            # Procesar vacunas desde request_data (puede haber múltiples)
+            if request_data and mascota and veterinario:
+                from .models import Vacuna, Tratamiento
+                
+                # Procesar vacunas - buscar todas las vacunas con formato vacuna_N_nombre, vacuna_N_fecha, etc.
+                vacuna_indices = set()
+                for key in request_data.keys():
+                    if key.startswith('vacuna_') and key.endswith('_nombre'):
+                        # Extraer el índice (ej: vacuna_1_nombre -> 1)
+                        try:
+                            index = int(key.replace('vacuna_', '').replace('_nombre', ''))
+                            vacuna_indices.add(index)
+                        except ValueError:
+                            continue
+                
+                # Crear cada vacuna encontrada
+                for idx in vacuna_indices:
+                    vacuna_nombre = request_data.get(f'vacuna_{idx}_nombre', '').strip()
+                    vacuna_fecha = request_data.get(f'vacuna_{idx}_fecha', '').strip()
+                    
+                    if vacuna_nombre and vacuna_fecha:
+                        try:
+                            from django.utils.dateparse import parse_date
+                            fecha_aplicacion = parse_date(vacuna_fecha)
+                            if fecha_aplicacion:
+                                Vacuna.objects.create(
+                                    mascota=mascota,
+                                    veterinario=veterinario,
+                                    nombre_vacuna=vacuna_nombre,
+                                    fecha_aplicacion=fecha_aplicacion,
+                                    lote=request_data.get(f'vacuna_{idx}_lote', '').strip() or None
+                                )
+                        except (ValueError, TypeError):
+                            pass  # Ignorar fechas inválidas
+                
+                # Procesar tratamientos - buscar todos los tratamientos con formato tratamiento_N_nombre, etc.
+                tratamiento_indices = set()
+                for key in request_data.keys():
+                    if key.startswith('tratamiento_') and key.endswith('_nombre'):
+                        try:
+                            index = int(key.replace('tratamiento_', '').replace('_nombre', ''))
+                            tratamiento_indices.add(index)
+                        except ValueError:
+                            continue
+                
+                # Crear cada tratamiento encontrado
+                for idx in tratamiento_indices:
+                    tratamiento_nombre = request_data.get(f'tratamiento_{idx}_nombre', '').strip()
+                    tratamiento_fecha = request_data.get(f'tratamiento_{idx}_fecha', '').strip()
+                    tratamiento_desc = request_data.get(f'tratamiento_{idx}_descripcion', '').strip()
+                    
+                    if tratamiento_nombre and tratamiento_fecha and tratamiento_desc:
+                        try:
+                            from django.utils.dateparse import parse_date
+                            fecha_inicio = parse_date(tratamiento_fecha)
+                            if fecha_inicio:
+                                Tratamiento.objects.create(
+                                    mascota=mascota,
+                                    veterinario=veterinario,
+                                    nombre_tratamiento=tratamiento_nombre,
+                                    fecha_inicio=fecha_inicio,
+                                    descripcion=tratamiento_desc,
+                                    estado='activo'
+                                )
+                        except (ValueError, TypeError):
+                            pass  # Ignorar fechas inválidas
+            
+            # También procesar la primera vacuna y tratamiento del formulario (para compatibilidad)
+            vacuna_nombre = self.cleaned_data.get('vacuna_nombre')
+            vacuna_fecha = self.cleaned_data.get('vacuna_fecha_aplicacion')
+            
+            if vacuna_nombre and vacuna_fecha and mascota and veterinario:
+                from .models import Vacuna
+                Vacuna.objects.create(
+                    mascota=mascota,
+                    veterinario=veterinario,
+                    nombre_vacuna=vacuna_nombre,
+                    fecha_aplicacion=vacuna_fecha,
+                    lote=self.cleaned_data.get('vacuna_lote') or None
+                )
+            
+            tratamiento_nombre = self.cleaned_data.get('tratamiento_nombre')
+            tratamiento_fecha = self.cleaned_data.get('tratamiento_fecha_inicio')
+            tratamiento_desc = self.cleaned_data.get('tratamiento_descripcion')
+            
+            if tratamiento_nombre and tratamiento_fecha and tratamiento_desc and mascota and veterinario:
+                from .models import Tratamiento
+                Tratamiento.objects.create(
+                    mascota=mascota,
+                    veterinario=veterinario,
+                    nombre_tratamiento=tratamiento_nombre,
+                    fecha_inicio=tratamiento_fecha,
+                    descripcion=tratamiento_desc,
+                    estado='activo'
+                )
+        
+        return ficha
 
 
 class ConsultaForm(forms.ModelForm):

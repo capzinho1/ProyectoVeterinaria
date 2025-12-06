@@ -247,9 +247,9 @@
     }
 
     $(document).ready(function(){
-        cargarTabla("dt-adulto",   "{% url 'api_gato_adulto' %}", "/editar/aga/", "/eliminar/aga/");
-        cargarTabla("dt-cachorro", "{% url 'api_gato_cachorro' %}", "/editar/agc/", "/eliminar/agc/");
-        cargarTabla("dt-snacks",   "{% url 'api_gatos_snacks' %}", "/editar/snackg/", "/eliminar/snackg/");
+        cargarTabla("dt-adulto",   "{% url 'api_gato_adulto' %}", "/productos/editar/aga/", "/productos/eliminar/aga/");
+        cargarTabla("dt-cachorro", "{% url 'api_gato_cachorro' %}", "/productos/editar/agc/", "/productos/eliminar/agc/");
+        cargarTabla("dt-snacks",   "{% url 'api_gatos_snacks' %}", "/productos/editar/snackg/", "/productos/eliminar/snackg/");
     });
 
     function mostrarTabla(cat) {

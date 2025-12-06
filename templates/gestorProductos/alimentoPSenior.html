@@ -109,7 +109,7 @@ v{% load static %}
 <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid">
 
-        <a class="navbar-brand text-white ms-5" href="{% url 'vet_inicio' %}"></a>
+        <a class="navbar-brand text-white ms-5" href="/vet_inicio/"></a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarNav">
@@ -121,7 +121,7 @@ v{% load static %}
             <!-- MENÚ -->
             <ul class="navbar-nav p-2 ms-5">
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'vet_inicio' %}">Inicio</a>
+                    <a class="nav-link" href="/vet_inicio/">Inicio</a>
                 </li>
 
                 <!-- CATEGORÍAS -->
@@ -136,10 +136,10 @@ v{% load static %}
                         <li class="dropdown-submenu">
                             <a class="dropdown-item dropdown-toggle" href="#">🐶 Perros</a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'perro_adulto'%}">Alimento Perro adulto</a></li>
-                                <li><a class="dropdown-item" href="{% url 'perro_cachorro'%}">Alimento Perro cachorro</a></li>
-                                <li><a class="dropdown-item" href="{% url 'perro_senior'%}">Alimento Perro Senior</a></li>
-                                <li><a class="dropdown-item" href="{% url 'snack_perro'%}">Snacks</a></li>
+                                <li><a class="dropdown-item" href="/productos/alimento-perro-adulto/">Alimento Perro adulto</a></li>
+                                <li><a class="dropdown-item" href="/productos/alimento-perro-cachorro/">Alimento Perro cachorro</a></li>
+                                <li><a class="dropdown-item" href="/productos/alimento-perro-senior/">Alimento Perro Senior</a></li>
+                                <li><a class="dropdown-item" href="/productos/snack-perro/">Snacks</a></li>
                             </ul>
                         </li>
 
@@ -147,9 +147,9 @@ v{% load static %}
                         <li class="dropdown-submenu">
                             <a class="dropdown-item dropdown-toggle" href="#">🐱 Gatos</a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'gato_adulto'%}">Alimento Gato Adulto</a></li>
-                                <li><a class="dropdown-item" href="{% url 'gato_cachorro'%}">Alimento Gato Cachorro</a></li>
-                                <li><a class="dropdown-item" href="{% url 'snack_gato'%}">Snacks</a></li>
+                                <li><a class="dropdown-item" href="/productos/alimento-gato-adulto/">Alimento Gato Adulto</a></li>
+                                <li><a class="dropdown-item" href="/productos/alimento-gato-cachorro/">Alimento Gato Cachorro</a></li>
+                                <li><a class="dropdown-item" href="/productos/snack-gato/">Snacks</a></li>
                             </ul>
                         </li>
 
@@ -157,9 +157,9 @@ v{% load static %}
                         <li class="dropdown-submenu">
                             <a class="dropdown-item dropdown-toggle" href="#">💊 Medicamentos</a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'antiparasitario'%}">Antiparasitarios</a></li>
-                                <li><a class="dropdown-item" href="{% url 'shampoos'%}">Shampoo</a></li>
-                                <li><a class="dropdown-item" href="{% url 'medicamentos'%}">Otros medicamentos</a></li>
+                                <li><a class="dropdown-item" href="/productos/antiparasitario/">Antiparasitarios</a></li>
+                                <li><a class="dropdown-item" href="/productos/shampoos/">Shampoo</a></li>
+                                <li><a class="dropdown-item" href="/productos/medicamentos/">Otros medicamentos</a></li>
                             </ul>
                         </li>
 
@@ -167,9 +167,9 @@ v{% load static %}
                         <li class="dropdown-submenu">
                             <a class="dropdown-item dropdown-toggle" href="#">🦴 Accesorios</a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'collares'%}">Collares y correas</a></li>
-                                <li><a class="dropdown-item" href="{% url 'camas'%}">Camas y mantas</a></li>
-                                <li><a class="dropdown-item" href="{% url 'juguetes'%}">Juguetes</a></li>
+                                <li><a class="dropdown-item" href="/productos/collares/">Collares y correas</a></li>
+                                <li><a class="dropdown-item" href="/productos/camas/">Camas y mantas</a></li>
+                                <li><a class="dropdown-item" href="/productos/juguetes/">Juguetes</a></li>
                             </ul>
                         </li>
 
@@ -191,26 +191,26 @@ v{% load static %}
             <ul class="navbar-nav d-flex align-items-center">
 
                 <li class="nav-item me-3">
-                    <a class="nav-link" href="{% url 'ver_carrito' %}">
+                    <a class="nav-link" href="/productos/carrito/">
                         <i class="bi bi-cart3"></i> Carrito
                     </a>
                 </li>
 
                 {% if user.is_authenticated %}
                 <li class="nav-item me-3">
-                    <a class="nav-link btn btn-outline-light" href="{% url 'agendar_cita' %}">
+                    <a class="nav-link btn btn-outline-light" href="/usuarios/citas/agendar/">
                         Agendar Cita
                     </a>
                 </li>
 
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="perfilDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle"></i> {{ user.username }}
                     </a>
 
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Mi Perfil</a></li>
-                        <li><a class="dropdown-item" href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="perfilDropdown">
+                                <li><a class="dropdown-item" href="#">Mi Perfil</a></li>
+                        <li><a class="dropdown-item" href="/logout">Cerrar Sesión</a></li>
                     </ul>
                 </li>
 
@@ -284,7 +284,7 @@ v{% load static %}
     </div>
 
     <div class="d-flex justify-content-start mt-4">
-            <a href="{% url 'vet_inicio' %}" class="btn-volver">
+            <a href="/vet_inicio/" class="btn-volver">
                 <i class="bi bi-arrow-left"></i> Volver
             </a>
     </div>
@@ -354,7 +354,7 @@ v{% load static %}
         }
 
         const tipo = btn.dataset.tipo || "";
-        document.getElementById("formAgregar").action = `/carrito/agregar/${tipo}/${id}/`;
+        document.getElementById("formAgregar").action = `/productos/carrito/agregar/${tipo}/${id}/`;
     });
 
     document.getElementById("btnMas").onclick = () => {
@@ -368,6 +368,45 @@ v{% load static %}
             input.value = parseInt(input.value) - 1;
         }
     };
+
+        // Submenús - Compatible con Bootstrap 5
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar dropdowns de Bootstrap
+            const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
+            dropdownElementList.forEach(function(dropdownToggleEl) {
+                new bootstrap.Dropdown(dropdownToggleEl);
+            });
+
+            // Manejar submenús
+            document.querySelectorAll('.dropdown-submenu > .dropdown-toggle').forEach(function(element) {
+                element.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Cerrar otros submenús abiertos
+                    document.querySelectorAll('.dropdown-submenu .dropdown-menu.show')
+                        .forEach(open => {
+                            if (open !== this.nextElementSibling) {
+                                open.classList.remove('show');
+                            }
+                        });
+                    
+                    // Toggle del submenú actual
+                    const submenu = this.nextElementSibling;
+                    if (submenu && submenu.classList.contains('dropdown-menu')) {
+                        submenu.classList.toggle('show');
+                    }
+                });
+            });
+
+            // Cerrar submenús al hacer click fuera
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown-submenu')) {
+                    document.querySelectorAll('.dropdown-submenu .dropdown-menu.show')
+                        .forEach(menu => menu.classList.remove('show'));
+                }
+            });
+        });
 </script>
 
 </body>

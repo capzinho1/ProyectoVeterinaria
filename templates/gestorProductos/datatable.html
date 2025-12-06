@@ -238,10 +238,10 @@
     }
 
     $(document).ready(function() {
-        initTabla("dt-adulto", "{% url 'api_perro_adulto' %}", "/editar/pa/", "/eliminar/pa/");
-        initTabla("dt-cachorro", "{% url 'api_perro_cachorro' %}", "/editar/pc/", "/eliminar/pc/");
-        initTabla("dt-senior", "{% url 'api_perro_senior' %}", "/editar/ps/", "/eliminar/ps/");
-        initTabla("dt-snacks", "{% url 'api_perros_snacks' %}", "/editar/snackp/", "/eliminar/snackp/");
+        initTabla("dt-adulto", "{% url 'api_perro_adulto' %}", "/productos/editar/pa/", "/productos/eliminar/pa/");
+        initTabla("dt-cachorro", "{% url 'api_perro_cachorro' %}", "/productos/editar/pc/", "/productos/eliminar/pc/");
+        initTabla("dt-senior", "{% url 'api_perro_senior' %}", "/productos/editar/ps/", "/productos/eliminar/ps/");
+        initTabla("dt-snacks", "{% url 'api_perros_snacks' %}", "/productos/editar/snackp/", "/productos/eliminar/snackp/");
 
         // Check URL parameters to show specific table
         const urlParams = new URLSearchParams(window.location.search);
