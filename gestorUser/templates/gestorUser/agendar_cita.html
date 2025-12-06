@@ -275,27 +275,29 @@
                                 <i class="bi bi-exclamation-triangle"></i> Por favor corrige los siguientes errores:
                             </h5>
                             <ul class="mb-0">
-                                {% for field_name, error_list in formulario_cita.errors.items %}
-                                    {% if field_name != '__all__' %}
-                                        {% for error in error_list %}
-                                            <li>
-                                                <strong>
-                                                    {% if field_name == 'mascota' %}Nombre de Mascota
-                                                    {% elif field_name == 'tipo_mascota' %}Tipo de Mascota
-                                                    {% elif field_name == 'titular' %}Nombre del Titular
-                                                    {% elif field_name == 'fecha' %}Fecha de la Cita
-                                                    {% elif field_name == 'hora' %}Hora de la Cita
-                                                    {% elif field_name == 'motivo' %}Motivo de la Consulta
-                                                    {% else %}{{ field_name }}{% endif %}:
-                                                </strong>
-                                                {{ error }}
-                                            </li>
-                                        {% endfor %}
-                                    {% endif %}
-                                {% endfor %}
                                 {% if formulario_cita.non_field_errors %}
                                     {% for error in formulario_cita.non_field_errors %}
-                                        <li>{{ error }}</li>
+                                        <li><strong>{{ error }}</strong></li>
+                                    {% endfor %}
+                                {% endif %}
+                                {% if formulario_cita.errors.items %}
+                                    {% for field_name, error_list in formulario_cita.errors.items %}
+                                        {% if field_name != '__all__' %}
+                                            {% for error in error_list %}
+                                                <li>
+                                                    <strong>
+                                                        {% if field_name == 'mascota' %}Nombre de Mascota
+                                                        {% elif field_name == 'tipo_mascota' %}Tipo de Mascota
+                                                        {% elif field_name == 'titular' %}Nombre del Titular
+                                                        {% elif field_name == 'fecha' %}Fecha de la Cita
+                                                        {% elif field_name == 'hora' %}Hora de la Cita
+                                                        {% elif field_name == 'motivo' %}Motivo de la Consulta
+                                                        {% else %}{{ field_name }}{% endif %}:
+                                                    </strong>
+                                                    {{ error }}
+                                                </li>
+                                            {% endfor %}
+                                        {% endif %}
                                     {% endfor %}
                                 {% endif %}
                             </ul>
@@ -489,48 +491,91 @@
             });
         });
         
-        // Marcar campos con errores y validación
+        // Validación de formulario - Solo marcar errores después de intentar enviar
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
             if (!form) return;
             
-            // Agregar clase is-invalid SOLO a campos que realmente tienen errores
-            // Buscar divs con errores que son hermanos directos de los inputs
-            document.querySelectorAll('.mb-3').forEach(function(fieldContainer) {
-                const errorDiv = fieldContainer.querySelector('.text-danger');
-                if (errorDiv && errorDiv.textContent.trim() !== '') {
-                    const input = fieldContainer.querySelector('input, select, textarea');
-                    if (input) {
-                        input.classList.add('is-invalid');
-                    }
+            let formSubmitted = false; // Flag para saber si el usuario ya intentó enviar
+            
+            // Verificar si hay errores del servidor al cargar (formulario ya fue enviado con errores)
+            // Buscar específicamente divs con clase text-danger que contengan mensajes de error
+            const errorDivs = document.querySelectorAll('.mb-3 .text-danger');
+            let hasServerErrors = false;
+            
+            errorDivs.forEach(function(errorDiv) {
+                // Verificar que el div tenga contenido de error real (no solo el asterisco del label)
+                const errorText = errorDiv.textContent.trim();
+                if (errorText && errorText.length > 0 && !errorText.includes('*')) {
+                    hasServerErrors = true;
                 }
             });
             
-            // Validación en tiempo real al cambiar campos
+            // También verificar si hay alertas de error
+            if (document.querySelector('.alert-danger')) {
+                hasServerErrors = true;
+            }
+            
+            if (hasServerErrors) {
+                // Si hay errores del servidor, significa que el formulario ya fue enviado
+                formSubmitted = true;
+                
+                // Marcar SOLO los campos que tienen errores del servidor
+                document.querySelectorAll('.mb-3').forEach(function(fieldContainer) {
+                    const errorDiv = fieldContainer.querySelector('.text-danger');
+                    if (errorDiv) {
+                        const errorText = errorDiv.textContent.trim();
+                        // Solo marcar si hay un mensaje de error real (no solo asterisco)
+                        if (errorText && errorText.length > 0 && !errorText.includes('*')) {
+                            const input = fieldContainer.querySelector('input, select, textarea');
+                            if (input) {
+                                input.classList.add('is-invalid');
+                            }
+                        }
+                    }
+                });
+            } else {
+                // Si NO hay errores del servidor, asegurarse de que NO haya clases is-invalid
+                document.querySelectorAll('input, select, textarea').forEach(function(field) {
+                    field.classList.remove('is-invalid');
+                });
+            }
+            
+            // Validación en tiempo real al cambiar campos (solo si ya se intentó enviar)
             form.querySelectorAll('input, select, textarea').forEach(function(field) {
                 // Remover clase is-invalid al escribir/seleccionar
                 field.addEventListener('input', function() {
-                    if (this.value && this.value.trim()) {
-                        this.classList.remove('is-invalid');
-                        // Remover mensaje de error si existe
-                        const errorDiv = this.closest('.mb-3')?.querySelector('.text-danger');
-                        if (errorDiv && this.value.trim()) {
-                            errorDiv.style.display = 'none';
+                    if (formSubmitted) {
+                        if (this.value && this.value.trim()) {
+                            this.classList.remove('is-invalid');
+                            // Ocultar mensaje de error si el campo ahora tiene valor
+                            const errorDiv = this.closest('.mb-3')?.querySelector('.text-danger');
+                            if (errorDiv && this.value.trim()) {
+                                errorDiv.style.display = 'none';
+                            }
                         }
                     }
                 });
                 
                 field.addEventListener('change', function() {
-                    if (this.value) {
-                        this.classList.remove('is-invalid');
+                    if (formSubmitted) {
+                        if (this.value) {
+                            this.classList.remove('is-invalid');
+                        }
                     }
                 });
             });
             
             // Validación antes de enviar
             form.addEventListener('submit', function(e) {
+                formSubmitted = true; // Marcar que se intentó enviar
                 let isValid = true;
                 let firstErrorField = null;
+                
+                // Primero remover todas las clases is-invalid para empezar limpio
+                form.querySelectorAll('input, select, textarea').forEach(function(field) {
+                    field.classList.remove('is-invalid');
+                });
                 
                 // Validar campos obligatorios
                 const requiredFields = form.querySelectorAll('[required]');
@@ -550,7 +595,16 @@
                         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         firstErrorField.focus();
                     }
-                    // El mensaje de error ya se mostrará desde el servidor
+                    // Mostrar mensaje de alerta
+                    const alertDiv = document.querySelector('.alert-danger');
+                    if (!alertDiv) {
+                        const formAlert = document.createElement('div');
+                        formAlert.className = 'alert alert-danger alert-dismissible fade show';
+                        formAlert.setAttribute('role', 'alert');
+                        formAlert.innerHTML = '<strong>⚠️ Por favor complete todos los campos obligatorios.</strong>' +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                        form.insertBefore(formAlert, form.firstChild);
+                    }
                 }
             });
         });

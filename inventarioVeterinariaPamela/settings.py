@@ -191,7 +191,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #configuracion de rutas de autentificacion
 
-LOGIN_URL = 'accounts/login/'  # Esto redirige a la página de login cuando un usuario no autenticado intenta acceder a una página restringida
+LOGIN_URL = '/accounts/login/'  # Ruta absoluta para login cuando un usuario no autenticado intenta acceder a una página restringida
 LOGIN_REDIRECT_URL = 'login_redirect'
 LOGOUT_REDIRECT_URL = 'index'
 

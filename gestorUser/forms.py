@@ -107,14 +107,9 @@ class CitaMedicaForm(forms.ModelForm):
         self.fields['fecha'].widget.attrs['min'] = fecha_minima.strftime('%Y-%m-%d')
         
         # ========== ESTILOS PARA ERRORES ==========
-        # Si el formulario tiene errores, agregar clase 'is-invalid' de Bootstrap
-        # para mostrar campos con errores visualmente (borde rojo)
-        if self.errors:
-            for field_name in self.errors:
-                if field_name in self.fields:
-                    current_class = self.fields[field_name].widget.attrs.get('class', '')
-                    if 'is-invalid' not in current_class:
-                        self.fields[field_name].widget.attrs['class'] = current_class + ' is-invalid'
+        # NO agregar clase 'is-invalid' aquí - se manejará en el template/JavaScript
+        # Solo agregar si el formulario fue enviado y tiene errores reales
+        # Esto evita que los campos aparezcan en rojo antes de intentar enviar
     
     def clean_fecha(self):
         """
@@ -195,9 +190,11 @@ class CitaMedicaForm(forms.ModelForm):
             ).exclude(pk=instance_pk).first()
             
             if existing_cita:
-                # Agregar error a ambos campos para mejor UX
-                self.add_error('fecha', "Ya existe una cita agendada para esta fecha y hora.")
-                self.add_error('hora', "Por favor seleccione otra hora disponible.")
+                # Agregar error general más visible - usar error no asociado a campo específico
+                error_msg = f"⚠️ Ya existe una cita agendada para el {fecha.strftime('%d/%m/%Y')} a las {hora.strftime('%H:%M')}. Por favor seleccione otra fecha u hora disponible."
+                raise forms.ValidationError({
+                    '__all__': [error_msg]
+                })
         
         return cleaned_data
 
