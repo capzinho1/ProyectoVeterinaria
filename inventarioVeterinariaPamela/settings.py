@@ -89,15 +89,62 @@ WSGI_APPLICATION = 'inventarioVeterinariaPamela.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-import pymysql
-pymysql.install_as_MySQLdb()
+try:
+    import pymysql  # type: ignore
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    # PyMySQL no está instalado, pero esto solo se necesita para MySQL
+    pass 
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'veterinaria_pamela',  # Nombre de la base de datos en XAMPP
+        'USER': 'root',                 # Usuario por defecto de XAMPP
+        'PASSWORD': '',                  # Contraseña por defecto de XAMPP (vacía)
+        'HOST': 'localhost',            # Host local
+        'PORT': '3306',                 # Puerto por defecto de MySQL en XAMPP
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
+
+# Deshabilitar verificación de versión de MariaDB (workaround para MariaDB 10.4)
+# Nota: En producción, se recomienda actualizar a MariaDB 10.5+ o MySQL 8.0+
+import django.db.backends.mysql.base
+original_check = django.db.backends.mysql.base.DatabaseWrapper.check_database_version_supported
+def patched_check(self):
+    try:
+        return original_check(self)
+    except Exception:
+        # Ignorar error de versión para MariaDB 10.4
+        pass
+django.db.backends.mysql.base.DatabaseWrapper.check_database_version_supported = patched_check
+
+# Deshabilitar RETURNING clause para MariaDB/MySQL (no soportado en versiones < 10.5.0)
+# Django 5.0 intenta usar RETURNING pero MariaDB 10.4 no lo soporta
+import django.db.backends.mysql.operations
+import django.db.backends.mysql.features
+
+# Deshabilitar soporte de RETURNING en las características de la base de datos
+django.db.backends.mysql.features.DatabaseFeatures.can_return_columns_from_insert = False
+django.db.backends.mysql.features.DatabaseFeatures.can_return_rows_from_bulk_insert = False
+
+# Parchear return_insert_columns para que no devuelva RETURNING
+original_return_insert = django.db.backends.mysql.operations.DatabaseOperations.return_insert_columns
+def patched_return_insert(self, fields):
+    # MariaDB/MySQL no soporta RETURNING en versiones antiguas
+    # Devolver cadena vacía en lugar de la cláusula RETURNING
+    return "", ()
+django.db.backends.mysql.operations.DatabaseOperations.return_insert_columns = patched_return_insert
+
+# Parchear fetch_returned_insert_rows para manejar el caso cuando no hay RETURNING
+original_fetch_returned = django.db.backends.mysql.operations.DatabaseOperations.fetch_returned_insert_rows
+def patched_fetch_returned(self, cursor):
+    # Cuando no hay RETURNING, devolver lista vacía
+    return []
+django.db.backends.mysql.operations.DatabaseOperations.fetch_returned_insert_rows = patched_fetch_returned
 
 
 # Password validation
@@ -135,7 +182,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [STATIC_URL]
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -147,15 +194,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'accounts/login/'  # Esto redirige a la página de login cuando un usuario no autenticado intenta acceder a una página restringida
 LOGIN_REDIRECT_URL = 'login_redirect'
 LOGOUT_REDIRECT_URL = 'index'
-
-from django.contrib.messages import constants as messages
-MESSAGE_TAGS = {
-    messages.DEBUG: 'debug',
-    messages.INFO:'info',
-    messages.SUCCESS:'success',
-    messages.WARNING:'warning',
-    messages.ERROR:'danger',
-}
 
 
 

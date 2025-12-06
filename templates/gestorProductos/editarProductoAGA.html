@@ -1,26 +1,60 @@
-{% extends 'gestorProductos/base.html' %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">Editar Producto AGA</h3>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Producto</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .form-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .form-header {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container my-5">
+        <!-- Encabezado principal -->
+        <div class="text-center mb-5">
+            <h1 class="form-header">Editar Producto AGA</h1>
+            <p class="text-muted">Modifica los datos del producto y guarda los cambios.</p>
+        </div>
+
+        <!-- Formulario de edición -->
+        <div class="form-container">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{% url 'datatable2' %}" class="btn btn-secondary">Volver</a>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                 </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'datatable2' %}" class="btn btn-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+</body>
+
+</html>

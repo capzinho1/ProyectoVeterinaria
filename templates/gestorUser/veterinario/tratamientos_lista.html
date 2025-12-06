@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tratamientos - Veterinario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar { background-color: #1ed1da; }
+        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'vet_veterinario' %}">
+                <i class="bi bi-heart-pulse"></i> Veterinaria Pamela
+            </a>
+            <div class="ms-auto">
+                <a href="{% url 'vet_veterinario' %}" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Salir</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-capsule"></i> Historial de Tratamientos</h2>
+            {% if paciente %}
+            <a href="{% url 'vet_tratamiento_registrar' paciente.id %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Registrar Tratamiento
+            </a>
+            {% endif %}
+        </div>
+
+        {% if paciente %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Mostrando tratamientos de: <strong>{{ paciente.nombre }}</strong>
+            <a href="{% url 'vet_paciente_detalle' paciente.id %}" class="btn btn-sm btn-info ms-2">Ver Paciente</a>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                {% if tratamientos %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tratamiento</th>
+                                    <th>Paciente</th>
+                                    <th>Fecha Inicio</th>
+                                    <th>Fecha Fin</th>
+                                    <th>Estado</th>
+                                    <th>Veterinario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tratamiento in tratamientos %}
+                                <tr>
+                                    <td><strong>{{ tratamiento.nombre_tratamiento }}</strong></td>
+                                    <td>
+                                        <a href="{% url 'vet_paciente_detalle' tratamiento.mascota.id %}">
+                                            {{ tratamiento.mascota.nombre }}
+                                        </a>
+                                    </td>
+                                    <td>{{ tratamiento.fecha_inicio|date:"d/m/Y" }}</td>
+                                    <td>{{ tratamiento.fecha_fin|date:"d/m/Y"|default:"En curso" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if tratamiento.estado == 'activo' %}success{% elif tratamiento.estado == 'completado' %}primary{% else %}secondary{% endif %}">
+                                            {{ tratamiento.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ tratamiento.veterinario.username|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle"></i> No se encontraron tratamientos registrados.
+                        {% if paciente %}
+                        <a href="{% url 'vet_tratamiento_registrar' paciente.id %}" class="alert-link">Registrar primer tratamiento</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

@@ -173,8 +173,8 @@
     <div id="tabla-collares" class="table-section">
         <div class="d-flex justify-content-between mb-3">
             <h3>📿 Collares y Correas</h3>
-            <a href="{% url 'collares_registro' %}" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Crear Accesorio
+            <a href="{% url 'crear_collares' %}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Crear Producto
             </a>
         </div>
         <table id="dt-collares" class="display" style="width:100%"></table>
@@ -184,8 +184,8 @@
     <div id="tabla-camas" class="table-section">
         <div class="d-flex justify-content-between mb-3">
             <h3>🛏️ Camas</h3>
-            <a href="{% url 'camas_registro' %}" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Crear Accesorio
+            <a href="{% url 'crear_camas' %}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Crear Producto
             </a>
         </div>
         <table id="dt-camas" class="display" style="width:100%"></table>
@@ -195,8 +195,8 @@
     <div id="tabla-juguetes" class="table-section">
         <div class="d-flex justify-content-between mb-3">
             <h3>🧸 Juguetes</h3>
-            <a href="{% url 'juguetes_registro' %}" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Crear Accesorio
+            <a href="{% url 'crear_juguetes' %}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Crear Producto
             </a>
         </div>
         <table id="dt-juguetes" class="display" style="width:100%"></table>
@@ -213,7 +213,6 @@
             ajax: urlApi,
             destroy: true,
             columns: [
-                { data: "codigo", title: "Código" },
                 { data: "nombre", title: "Nombre" },
                 { data: "marca",  title: "Marca" },
                 { data: "stock",  title: "Stock" },
@@ -224,7 +223,7 @@
                     orderable: false,
                     render: function(codigo) {
                         return `
-                            <a href="${editUrl}${codigo}/" class="btn btn-warning btn-sm me-2">
+                            <a href="${editUrl}${codigo}/" class="btn btn-warning btn-sm">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <a href="${deleteUrl}${codigo}/" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')">

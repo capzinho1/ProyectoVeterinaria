@@ -283,6 +283,7 @@
                             data-bs-toggle="modal"
                             data-bs-target="#productoModal"
                             data-id="{{ snack.id }}"
+                            data-tipo="snackp"
                             data-nombre="{{ snack.nombre }}"
                             data-descripcion="{{ snack.descripcion }}"
                             data-precio="{{ snack.precio }}"
@@ -325,7 +326,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                         <button type="submit" class="btn btn-success">Agregar al Carrito</button>
                     </div>
                 </form>
@@ -346,13 +347,14 @@
             const precio = button.getAttribute('data-precio');
             const imagen = button.getAttribute('data-imagen');
 
+            const tipo = button.getAttribute('data-tipo');
+            
             document.getElementById('productoModalLabel').textContent = nombre;
             document.getElementById('productoDescripcion').textContent = descripcion;
             document.getElementById('productoPrecio').textContent = '$' + precio;
             document.getElementById('productoImagen').src = imagen;
 
-            const baseUrl = "{% url 'agregar_carrito' 'sp' 0 %}";
-            document.getElementById('formAgregar').action = baseUrl.replace('/0/', '/' + id + '/');
+            document.getElementById('formAgregar').action = `/carrito/agregar/${tipo}/${id}/`;
         });
 
         // Controles de cantidad

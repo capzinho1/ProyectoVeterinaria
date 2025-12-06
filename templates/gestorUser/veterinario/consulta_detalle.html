@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta - Detalle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar { background-color: #1ed1da; }
+        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'vet_veterinario' %}">
+                <i class="bi bi-heart-pulse"></i> Veterinaria Pamela
+            </a>
+            <div class="ms-auto">
+                <a href="{% url 'vet_consultas' %}" class="btn btn-outline-light btn-sm me-2">Volver</a>
+                <a href="{% url 'vet_veterinario' %}" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Salir</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-clipboard-pulse"></i> Consulta - {{ consulta.mascota.nombre }}</h2>
+            <div>
+                <a href="{% url 'vet_consulta_editar' consulta.id %}" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                {% if consulta.estado != 'completada' %}
+                <a href="{% url 'vet_consulta_completar' consulta.id %}" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Marcar Completada
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Información de la Consulta -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Información de la Consulta</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Fecha:</strong> {{ consulta.fecha_consulta|date:"d/m/Y H:i" }}</p>
+                        <p><strong>Paciente:</strong> 
+                            <a href="{% url 'vet_paciente_detalle' consulta.mascota.id %}">{{ consulta.mascota.nombre }}</a>
+                        </p>
+                        <p><strong>Estado:</strong> 
+                            <span class="badge bg-{% if consulta.estado == 'completada' %}success{% elif consulta.estado == 'en_proceso' %}warning{% else %}secondary{% endif %}">
+                                {{ consulta.get_estado_display }}
+                            </span>
+                        </p>
+                        <p><strong>Veterinario:</strong> {{ consulta.veterinario.username|default:"-" }}</p>
+                        <p><strong>Costo:</strong> ${{ consulta.costo|default:"0" }}</p>
+                        <p><strong>Pagada:</strong> 
+                            <span class="badge bg-{% if consulta.pagada %}success{% else %}danger{% endif %}">
+                                {% if consulta.pagada %}Sí{% else %}No{% endif %}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Motivo y Síntomas -->
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Motivo y Síntomas</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Motivo:</strong></p>
+                        <p>{{ consulta.motivo }}</p>
+                        {% if consulta.sintomas %}
+                        <p><strong>Síntomas:</strong></p>
+                        <p>{{ consulta.sintomas }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Diagnóstico y Tratamiento -->
+                {% if consulta.diagnostico or consulta.tratamiento %}
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Diagnóstico y Tratamiento</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if consulta.diagnostico %}
+                        <p><strong>Diagnóstico:</strong></p>
+                        <p>{{ consulta.diagnostico }}</p>
+                        {% endif %}
+                        {% if consulta.tratamiento %}
+                        <p><strong>Tratamiento:</strong></p>
+                        <p>{{ consulta.tratamiento }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Observaciones -->
+                {% if consulta.observaciones %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Observaciones</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ consulta.observaciones }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Recetas -->
+                <div class="card">
+                    <div class="card-header bg-warning text-dark d-flex justify-content-between">
+                        <h5 class="mb-0">Recetas</h5>
+                        {% if consulta.estado == 'completada' %}
+                        <a href="{% url 'vet_receta_crear' consulta.id %}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-circle"></i> Nueva Receta
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if recetas %}
+                            {% for receta in recetas %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <h6>Receta del {{ receta.fecha_emision|date:"d/m/Y" }}</h6>
+                                        <a href="{% url 'vet_receta_detalle' receta.id %}" class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i> Ver Detalle
+                                        </a>
+                                    </div>
+                                    <p class="mb-1"><strong>Instrucciones:</strong> {{ receta.instrucciones|truncatechars:100 }}</p>
+                                    {% if receta.prescripciones.all %}
+                                    <p class="mb-0"><strong>Medicamentos:</strong> {{ receta.prescripciones.count }} prescripción(es)</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No hay recetas asociadas</p>
+                            {% if consulta.estado == 'completada' %}
+                            <a href="{% url 'vet_receta_crear' consulta.id %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Crear Receta
+                            </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Acciones</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'vet_paciente_detalle' consulta.mascota.id %}" class="btn btn-info w-100 mb-2">
+                            <i class="bi bi-heart"></i> Ver Paciente
+                        </a>
+                        <a href="{% url 'vet_consulta_editar' consulta.id %}" class="btn btn-warning w-100 mb-2">
+                            <i class="bi bi-pencil"></i> Editar Consulta
+                        </a>
+                        {% if consulta.estado != 'completada' %}
+                        <a href="{% url 'vet_consulta_completar' consulta.id %}" class="btn btn-success w-100 mb-2">
+                            <i class="bi bi-check-circle"></i> Completar Consulta
+                        </a>
+                        {% endif %}
+                        {% if consulta.estado == 'completada' and not recetas %}
+                        <a href="{% url 'vet_receta_crear' consulta.id %}" class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-prescription"></i> Crear Receta
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

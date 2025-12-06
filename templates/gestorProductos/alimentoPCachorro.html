@@ -256,6 +256,7 @@
                         data-bs-toggle="modal"
                         data-bs-target="#modalDetalle"
                         data-id="{{ producto.id }}"
+                        data-tipo="pc"
                         data-nombre="{{ producto.nombre|escapejs }}"
                         data-descripcion="{{ producto.descripcion|escapejs }}"
                         data-precio="{{ producto.precio }}"
@@ -342,8 +343,8 @@
             img.alt = "";
         }
 
-        const baseUrl = "{% url 'agregar_carrito' 'pc' 0 %}";
-        document.getElementById("formAgregar").action = baseUrl.replace('/0/', '/' + id + '/');
+        const tipo = btn.dataset.tipo || "";
+        document.getElementById("formAgregar").action = `/carrito/agregar/${tipo}/${id}/`;
     });
 
     document.getElementById("btnMas").onclick = () => {

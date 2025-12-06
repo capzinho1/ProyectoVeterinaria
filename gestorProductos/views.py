@@ -7,6 +7,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, Http
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+import json
 from .forms import (
     CategoriaRegistroForm, ProductosRegistroForm, PCProductosForm, PAProductosForm,
     PSProductosForm, AProductosForm, AGAProductosForm, AGCProductosForm,
@@ -177,16 +178,16 @@ def editarProducto(request, id):
 # ============================================
 # VISTAS DE ELIMINAR Y EDITAR PERRO CACHORRO
 # ============================================
-def eliminarProductoPC(request, id):
+def eliminarProductoPC(request, codigo):
     try:
-        pcproducto = PCProductos.objects.get(id=id)
+        pcproducto = PCProductos.objects.get(codigo=codigo)
         # Aquí va el código para eliminar el producto
         pcproducto.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable2')  # Redirige a la lista de productos
+        return redirect('datatable')  # Redirige al catálogo de perros
     except PCProductos.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable2')  # Redirige a una página donde se pueda ver el error
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable')  # Redirige al catálogo de perros
 
 
 
@@ -255,31 +256,31 @@ def editarProductoPS(request, codigo):
 # ==========================================
 # VISTAS DE ELIMINAR Y EDITAR PERRO SENIOR
 # ==========================================
-def eliminarProductoPS(request, id):
+def eliminarProductoPS(request, codigo):
     try:
-        psproducto = PSProductos.objects.get(id=id)
+        psproducto = PSProductos.objects.get(codigo=codigo)
         # Aquí va el código para eliminar el producto
         psproducto.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable')  # Redirige a la lista de productos
+        return redirect('datatable')  # Redirige al catálogo de perros
     except PSProductos.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable')  # Redirige a una página donde se pueda ver el error
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable')  # Redirige al catálogo de perros
 
 
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR ANTIPULGAS
 # ========================================
-def eliminarProductoA(request, id):
+def eliminarProductoA(request, codigo):
     try:
-        aproducto = AProductos.objects.get(id=id)
+        aproducto = AProductos.objects.get(codigo=codigo)
         aproducto.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable4')
+        return redirect('datatable')  # Redirige al catálogo de perros
     except AProductos.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable4')
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable')  # Redirige al catálogo de perros
 
 def editarProductoA(request, codigo):
     aproducto = get_object_or_404(AProductos, codigo=codigo)
@@ -287,24 +288,26 @@ def editarProductoA(request, codigo):
         form = DatatableProductosAForm(request.POST, instance=aproducto)
         if form.is_valid():
             form.save()
-            return redirect('datatable4')
+            messages.success(request, "Producto actualizado correctamente.")
+            return redirect('datatable')  # Redirige al catálogo de perros
+        else:
+            messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableProductosAForm(instance=aproducto)
-
     return render(request, 'gestorProductos/editarProductoA.html', {'form': form, 'aproducto': aproducto})
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR GATO ADULTO
 # ========================================
-def eliminarProductoAGA(request, id):
+def eliminarProductoAGA(request, codigo):
     try:
-        agaproducto = AGAProductos.objects.get(id=id)
+        agaproducto = AGAProductos.objects.get(codigo=codigo)
         agaproducto.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable2')
+        return redirect('datatable2')  # Redirige al catálogo de gatos
     except AGAProductos.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable2')
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable2')  # Redirige al catálogo de gatos
 
 def editarProductoAGA(request, codigo):
     agaproducto = get_object_or_404(AGAProductos, codigo=codigo)
@@ -323,18 +326,18 @@ def editarProductoAGA(request, codigo):
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR GATO CACHORRO
 # ========================================
-def eliminarProductoAGC(request, id):
+def eliminarProductoAGC(request, codigo):
     try:
-        agcproducto = AGCProductos.objects.get(id=id)
+        agcproducto = AGCProductos.objects.get(codigo=codigo)
         agcproducto.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable2')
+        return redirect('datatable2')  # Redirige al catálogo de gatos
     except AGCProductos.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable2')
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable2')  # Redirige al catálogo de gatos
 
-def editarProductoAGC(request, id):
-    agcproducto = get_object_or_404(AGCProductos, id=id)
+def editarProductoAGC(request, codigo):
+    agcproducto = get_object_or_404(AGCProductos, codigo=codigo)
     if request.method == 'POST':
         form = DatatableAGCForm(request.POST, instance=agcproducto)
         if form.is_valid():
@@ -350,18 +353,18 @@ def editarProductoAGC(request, id):
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR SNACK GATO
 # ========================================
-def eliminarProductoSnackG(request, id):
+def eliminarProductoSnackG(request, codigo):
     try:
-        snackgproducto = SnackGProductos.objects.get(id=id)
+        snackgproducto = SnackGProductos.objects.get(codigo=codigo)
         snackgproducto.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable2')
+        return redirect('datatable2')  # Redirige al catálogo de gatos
     except SnackGProductos.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable2')
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable2')  # Redirige al catálogo de gatos
 
-def editarProductoSnackG(request, id):
-    snackgproducto = get_object_or_404(SnackGProductos, id=id)
+def editarProductoSnackG(request, codigo):
+    snackgproducto = get_object_or_404(SnackGProductos, codigo=codigo)
     if request.method == 'POST':
         form = DatatableSnackGForm(request.POST, instance=snackgproducto)
         if form.is_valid():
@@ -377,18 +380,18 @@ def editarProductoSnackG(request, id):
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR SNACK PERRO
 # ========================================
-def eliminarProductoSnackP(request, id):
+def eliminarProductoSnackP(request, codigo):
     try:
-        snackpproducto = SnackPProductos.objects.get(id=id)
+        snackpproducto = SnackPProductos.objects.get(codigo=codigo)
         snackpproducto.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable')
+        return redirect('datatable')  # Redirige al catálogo de perros
     except SnackPProductos.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable')
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable')  # Redirige al catálogo de perros
 
-def editarProductoSnackP(request, id):
-    snackpproducto = get_object_or_404(SnackPProductos, id=id)
+def editarProductoSnackP(request, codigo):
+    snackpproducto = get_object_or_404(SnackPProductos, codigo=codigo)
     if request.method == 'POST':
         form = DatatableSnackPForm(request.POST, instance=snackpproducto)
         if form.is_valid():
@@ -404,18 +407,18 @@ def editarProductoSnackP(request, id):
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR ANTIPARASITARIO
 # ========================================
-def eliminarProductoAntiparasitario(request, id):
+def eliminarProductoAntiparasitario(request, codigo):
     try:
-        antiparasitario = Antiparasitario.objects.get(id=id)
+        antiparasitario = Antiparasitario.objects.get(codigo=codigo)
         antiparasitario.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable3')
+        return redirect('datatable3')  # Redirige al catálogo de medicamentos
     except Antiparasitario.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable3')
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable3')  # Redirige al catálogo de medicamentos
 
-def editarProductoAntiparasitario(request, id):
-    antiparasitario = get_object_or_404(Antiparasitario, id=id)
+def editarProductoAntiparasitario(request, codigo):
+    antiparasitario = get_object_or_404(Antiparasitario, codigo=codigo)
     if request.method == 'POST':
         form = DatatableAntiparasitarioForm(request.POST, instance=antiparasitario)
         if form.is_valid():
@@ -431,18 +434,18 @@ def editarProductoAntiparasitario(request, id):
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR MEDICAMENTO
 # ========================================
-def eliminarProductoMedicamento(request, id):
+def eliminarProductoMedicamento(request, codigo):
     try:
-        medicamento = Medicamento.objects.get(id=id)
+        medicamento = Medicamento.objects.get(codigo=codigo)
         medicamento.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable3')
+        return redirect('datatable3')  # Redirige al catálogo de medicamentos
     except Medicamento.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable3')
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable3')  # Redirige al catálogo de medicamentos
 
-def editarProductoMedicamento(request, id):
-    medicamento = get_object_or_404(Medicamento, id=id)
+def editarProductoMedicamento(request, codigo):
+    medicamento = get_object_or_404(Medicamento, codigo=codigo)
     if request.method == 'POST':
         form = DatatableMedicamentoForm(request.POST, instance=medicamento)
         if form.is_valid():
@@ -458,18 +461,18 @@ def editarProductoMedicamento(request, id):
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR SHAMPOO
 # ========================================
-def eliminarProductoShampoo(request, id):
+def eliminarProductoShampoo(request, codigo):
     try:
-        shampoo = Shampoo.objects.get(id=id)
+        shampoo = Shampoo.objects.get(codigo=codigo)
         shampoo.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable3')
+        return redirect('datatable3')  # Redirige al catálogo de medicamentos
     except Shampoo.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable3')
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable3')  # Redirige al catálogo de medicamentos
 
-def editarProductoShampoo(request, id):
-    shampoo = get_object_or_404(Shampoo, id=id)
+def editarProductoShampoo(request, codigo):
+    shampoo = get_object_or_404(Shampoo, codigo=codigo)
     if request.method == 'POST':
         form = DatatableShampooForm(request.POST, instance=shampoo)
         if form.is_valid():
@@ -480,23 +483,23 @@ def editarProductoShampoo(request, id):
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableShampooForm(instance=shampoo)
-    return render(request, 'gestorProductos/editarProductoShampoo.html', {'form': form, 'shampoo': shampoo})
+    return render(request, 'gestorProductos/editarProductoShampoo.html', {'form': form, 'shampoo': shampoo, 'is_creating': False})
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR COLLAR
 # ========================================
-def eliminarProductoCollar(request, id):
+def eliminarProductoCollar(request, codigo):
     try:
-        collar = Collar.objects.get(id=id)
+        collar = Collar.objects.get(codigo=codigo)
         collar.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable4')
+        return redirect('datatable4')  # Redirige al catálogo de accesorios
     except Collar.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable4')
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable4')  # Redirige al catálogo de accesorios
 
-def editarProductoCollar(request, id):
-    collar = get_object_or_404(Collar, id=id)
+def editarProductoCollar(request, codigo):
+    collar = get_object_or_404(Collar, codigo=codigo)
     if request.method == 'POST':
         form = DatatableCollarForm(request.POST, instance=collar)
         if form.is_valid():
@@ -512,18 +515,18 @@ def editarProductoCollar(request, id):
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR CAMA
 # ========================================
-def eliminarProductoCama(request, id):
+def eliminarProductoCama(request, codigo):
     try:
-        cama = Cama.objects.get(id=id)
+        cama = Cama.objects.get(codigo=codigo)
         cama.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable4')
+        return redirect('datatable4')  # Redirige al catálogo de accesorios
     except Cama.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable4')
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable4')  # Redirige al catálogo de accesorios
 
-def editarProductoCama(request, id):
-    cama = get_object_or_404(Cama, id=id)
+def editarProductoCama(request, codigo):
+    cama = get_object_or_404(Cama, codigo=codigo)
     if request.method == 'POST':
         form = DatatableCamaForm(request.POST, instance=cama)
         if form.is_valid():
@@ -539,18 +542,18 @@ def editarProductoCama(request, id):
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR JUGUETE
 # ========================================
-def eliminarProductoJuguete(request, id):
+def eliminarProductoJuguete(request, codigo):
     try:
-        juguete = Juguete.objects.get(id=id)
+        juguete = Juguete.objects.get(codigo=codigo)
         juguete.delete()
         messages.success(request, "Producto eliminado correctamente.")
-        return redirect('datatable4')
+        return redirect('datatable4')  # Redirige al catálogo de accesorios
     except Juguete.DoesNotExist:
-        messages.error(request, f"Producto con id {id} no encontrado.")
-        return redirect('datatable4')
+        messages.error(request, f"Producto con código {codigo} no encontrado.")
+        return redirect('datatable4')  # Redirige al catálogo de accesorios
 
-def editarProductoJuguete(request, id):
-    juguete = get_object_or_404(Juguete, id=id)
+def editarProductoJuguete(request, codigo):
+    juguete = get_object_or_404(Juguete, codigo=codigo)
     if request.method == 'POST':
         form = DatatableJugueteForm(request.POST, instance=juguete)
         if form.is_valid():
@@ -573,7 +576,7 @@ def crear_alimentopa(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable?created=adulto')
+            return redirect('datatable')
         else:
             messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearProductoPA.html', {'form': form})
@@ -585,7 +588,9 @@ def crear_alimentopc(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable2?created=cachorro')
+            return redirect('datatable')  # Redirige al catálogo de perros
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearProductoPC.html', {'form': form})
 
 def crear_alimentops(request):
@@ -595,7 +600,9 @@ def crear_alimentops(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable?created=senior')
+            return redirect('datatable')
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearProductoPS.html', {'form': form})
 
 def crear_snackp(request):
@@ -605,7 +612,9 @@ def crear_snackp(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable?created=snacks')
+            return redirect('datatable')
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearSnackPerro.html', {'form': form})
 
 def crear_alimentoga(request):
@@ -615,7 +624,9 @@ def crear_alimentoga(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable2?created=gato_adulto')
+            return redirect('datatable2')
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearAlimentoGA.html', {'form': form})
 
 def crear_alimentogc(request):
@@ -625,7 +636,9 @@ def crear_alimentogc(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable2?created=gato_cachorro')
+            return redirect('datatable2')
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearAlimentoGC.html', {'form': form})
 
 def crear_snackg(request):
@@ -635,7 +648,9 @@ def crear_snackg(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable2?created=snack_gato')
+            return redirect('datatable2')
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearSnackGato.html', {'form': form})
 
 def crear_antiparasitario(request):
@@ -645,27 +660,37 @@ def crear_antiparasitario(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable3?created=antiparasitario')
+            return redirect('datatable3')
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearAntiparasitario.html', {'form': form})
 
 def crear_shampoo(request):
-    form = ShampooForm()
     if request.method == "POST":
         form = ShampooForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable3?created=shampoo')
-    return render(request, 'gestorProductos/crearshampoo.html', {'form': form})
+            messages.success(request, "Shampoo creado correctamente.", extra_tags='shampoo')
+            return redirect('datatable3')
+        else:
+            # No redirigir si hay errores, mostrar en la misma página
+            messages.error(request, "Error al crear el shampoo. Verifica los datos.", extra_tags='shampoo')
+    else:
+        form = ShampooForm()
+    return render(request, 'gestorProductos/editarProductoShampoo.html', {'form': form, 'is_creating': True})
 
 def crear_medicamentos(request):
-    form = MedicamentoForm()
     if request.method == "POST":
         form = MedicamentoForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable3?created=medicamentos')
+            messages.success(request, "Medicamento creado correctamente.", extra_tags='medicamento')
+            return redirect('datatable3')
+        else:
+            # No redirigir si hay errores, mostrar en la misma página
+            messages.error(request, "Error al crear el medicamento. Verifica los datos.", extra_tags='medicamento')
+    else:
+        form = MedicamentoForm()
     return render(request, 'gestorProductos/crearMedicamentos.html', {'form': form})
 
 def crear_collares(request):
@@ -675,7 +700,9 @@ def crear_collares(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Producto creado correctamente.")
-            return redirect('collares?created=collares')
+            return redirect('datatable4')
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearCollares.html', {'form': form})
 
 def crear_camas(request):
@@ -685,7 +712,9 @@ def crear_camas(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable4?created=camas')
+            return redirect('datatable4')
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearCamas.html', {'form': form})
 
 def crear_juguetes(request):
@@ -695,185 +724,175 @@ def crear_juguetes(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Producto creado correctamente.")
-            return redirect('juguetes?created=juguetes')
+            return redirect('datatable4')
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearJuguetes.html', {'form': form})
 
 def ProductoPCRegistro(request):
-    form = ProductosRegistroForm()
+    form = PCProductosForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = PCProductosForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable2')  # Redirect to datatable2 for PCProductos
-    else:
-        form = ProductosRegistroForm()
-    
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable')  # Redirige al catálogo de perros
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearProductoPC.html', {'form': form})
 
 def ProductoPARegistro(request):
-    form = ProductosRegistroForm()
+    form = PAProductosForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = PAProductosForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable')  # Keeps redirect to main datatable for PAProductos
-    else:
-        form = ProductosRegistroForm()
-    
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable')  # Redirige al catálogo de perros
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearProductoPA.html', {'form': form})
 
 def ProductoPSRegistro(request):
-    form = ProductosRegistroForm()
+    form = PSProductosForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = PSProductosForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable4')  # Redirect to datatable4 for PSProductos
-    else:
-        form = ProductosRegistroForm()
-    
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable')  # Redirige al catálogo de perros
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearProductoPS.html', {'form': form})
 
 def AProductoRegistro(request):
-    form = ProductosRegistroForm()
+    form = AProductosForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = AProductosForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable3')  # Redirige al inicio de sesión
-    else:
-        form = ProductosRegistroForm()
-    
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable')  # Redirige al catálogo de perros
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearProductoA.html', {'form': form})
 
 def SnackPerroRegistro(request):
-    form = ProductosRegistroForm()
+    form = SnackPProductosForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = SnackPProductosForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable')  # Redirige al inicio de sesión
-    else:
-        form = ProductosRegistroForm()
-    
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable')  # Redirige al catálogo de perros
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearSnackPerro.html', {'form': form})
 
 def AlimentoGARegistro(request):
-    form = ProductosRegistroForm()
+    form = AGAProductosForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = AGAProductosForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable2')  # Redirige al inicio de sesión
-    else:
-        form = ProductosRegistroForm()
-    
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable2')  # Redirige al catálogo de gatos
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearAlimentoGA.html', {'form': form})
 
 def AlimentoGCRegistro(request):
-    form = ProductosRegistroForm()
+    form = AGCProductosForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = AGCProductosForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable2')  # Redirige al inicio de sesión
-    else:
-        form = ProductosRegistroForm()
-    
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable2')  # Redirige al catálogo de gatos
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearAlimentoGC.html', {'form': form})
 
 def SnackGatoRegistro(request):
-    form = ProductosRegistroForm()
+    form = SnackGProductosForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = SnackGProductosForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable2')  # Redirige al inicio de sesión
-    else:
-        form = ProductosRegistroForm()
-    
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable2')  # Redirige al catálogo de gatos
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearSnackGato.html', {'form': form})
 
 def antiparasitarioRegistro(request):
-    form = ProductosRegistroForm()
+    form = AntiparasitarioForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = AntiparasitarioForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable2')  # Redirige al inicio de sesión
-    else:
-        form = ProductosRegistroForm()
-    
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable3')  # Redirige al catálogo de medicamentos
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearAntiparasitario.html', {'form': form})
 
 def shampooRegistro(request):
-    form = ProductosRegistroForm()
-    if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('datatable3')  # Redirige al inicio de sesión
-    else:
-        form = ProductosRegistroForm()
-    
-    return render(request, 'gestorProductos/crearshampoo.html', {'form': form})
+    # Usar la misma lógica que crear_shampoo para evitar duplicación
+    return crear_shampoo(request)
 
 def medicamentosRegistro(request):
-    form = ProductosRegistroForm()
-    if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('datatable3')  # Redirige al inicio de sesión
-    else:
-        form = ProductosRegistroForm()
-    
-    return render(request, 'gestorProductos/crearMedicamentos.html', {'form': form})
+    # Usar la misma lógica que crear_medicamentos para evitar duplicación
+    return crear_medicamentos(request)
 
 def camasRegistro(request):
-    form = ProductosRegistroForm()
+    form = CamaForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = CamaForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable4')  # Redirige a la tabla de datos
-    else:
-        form = ProductosRegistroForm()
-
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable4')  # Redirige al catálogo de accesorios
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearCamas.html', {'form': form})
 
 def collaresRegistro(request):
-    form = ProductosRegistroForm()
+    form = CollarForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = CollarForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable4')
-    else:
-        form = ProductosRegistroForm()
-
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable4')  # Redirige al catálogo de accesorios
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearCollares.html', {'form': form})
 
 def juguetesRegistro(request):
-    form = ProductosRegistroForm()
+    form = JugueteForm()
     if request.method == "POST":
-        form = ProductosRegistroForm(request.POST)
+        form = JugueteForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('datatable4')
-    else:
-        form = ProductosRegistroForm()
-
+            messages.success(request, "Producto creado correctamente.")
+            return redirect('datatable4')  # Redirige al catálogo de accesorios
+        else:
+            messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearJuguetes.html', {'form': form})
 
 # ========================================
 
 # ========================================
-@login_required
 def home(request):
+    # Si el usuario no está autenticado, redirigir al login
+    if not request.user.is_authenticated:
+        from django.contrib.auth.views import redirect_to_login
+        return redirect_to_login(request.get_full_path())
+    
     categorias = Categoria.objects.all()
 
-    # KPIs para superusuarios
+    # KPIs solo para superusuarios (admin)
     if request.user.is_superuser:
         # Total productos
         total_productos = (
@@ -944,8 +963,28 @@ def home(request):
 
         # Productos recientes (últimos 5 agregados)
         productos_recientes = []
+        categorias_map = {
+            'PAProductos': 'Alimento Perro Adulto',
+            'PCProductos': 'Alimento Perro Cachorro',
+            'PSProductos': 'Alimento Perro Senior',
+            'AGAProductos': 'Alimento Gato Adulto',
+            'AGCProductos': 'Alimento Gato Cachorro',
+            'SnackPProductos': 'Snack Perro',
+            'SnackGProductos': 'Snack Gato',
+            'Antiparasitario': 'Medicamento',
+            'Medicamento': 'Medicamento',
+            'Shampoo': 'Accesorio',
+            'Cama': 'Accesorio',
+            'Collar': 'Accesorio',
+            'Juguete': 'Accesorio',
+            'Productos': 'General',
+            'AProductos': 'General'
+        }
+        
         for model in [Productos, PCProductos, PAProductos, PSProductos, AProductos, AGAProductos, AGCProductos, SnackGProductos, SnackPProductos, Antiparasitario, Medicamento, Shampoo, Cama, Collar, Juguete]:
-            productos_recientes.extend(list(model.objects.order_by('-id')[:5]))
+            for producto in model.objects.order_by('-id')[:5]:
+                producto.categoria_nombre = categorias_map.get(model.__name__, 'Otros')
+                productos_recientes.append(producto)
 
         productos_recientes = sorted(productos_recientes, key=lambda x: x.id, reverse=True)[:5]
 
@@ -954,7 +993,7 @@ def home(request):
             'total_productos': total_productos,
             'total_stock': total_stock,
             'valor_inventario': valor_inventario,
-            'categorias_count': categorias_count,
+            'categorias_count': json.dumps(categorias_count),  # Convertir a JSON string
             'productos_recientes': productos_recientes
         }
     else:
@@ -1082,7 +1121,15 @@ def agregar_carrito(request, tipo, producto_id):
         "a": AProductos,
         "p": Productos,
         "ap": Antiparasitario,
-        # si en tu HTML usas otras strings, añádelas aquí (ej. "perro_adulto": PAProductos)
+        "aga": AGAProductos,
+        "agc": AGCProductos,
+        "snackp": SnackPProductos,
+        "snackg": SnackGProductos,
+        "med": Medicamento,
+        "shampoo": Shampoo,
+        "cama": Cama,
+        "collar": Collar,
+        "juguete": Juguete,
     }
 
     modelo = modelos.get(tipo)

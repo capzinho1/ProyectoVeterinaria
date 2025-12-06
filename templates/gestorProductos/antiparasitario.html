@@ -285,6 +285,7 @@
                             data-bs-toggle="modal"
                             data-bs-target="#productoModal"
                             data-id="{{ antiparasitario.id }}"
+                            data-tipo="ap"
                             data-nombre="{{ antiparasitario.nombre }}"
                             data-descripcion="{{ antiparasitario.descripcion }}"
                             data-precio="{{ antiparasitario.precio }}"
@@ -347,12 +348,14 @@
             const precio = button.getAttribute('data-precio');
             const imagen = button.getAttribute('data-imagen');
 
+            const tipo = button.getAttribute('data-tipo');
+            
             document.getElementById('productoModalLabel').textContent = nombre;
             document.getElementById('productoDescripcion').textContent = descripcion;
             document.getElementById('productoPrecio').textContent = '$' + precio;
             document.getElementById('productoImagen').src = imagen;
-            const baseUrl = "{% url 'agregar_carrito' 'ap' 0 %}";
-            document.getElementById('formAgregar').action = baseUrl.replace('/0/', '/' + id + '/');
+
+            document.getElementById('formAgregar').action = `/carrito/agregar/${tipo}/${id}/`;
         });
 
         document.getElementById('increaseBtn').addEventListener('click', () => {

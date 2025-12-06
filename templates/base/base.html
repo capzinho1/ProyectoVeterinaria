@@ -113,6 +113,10 @@
   <!-- Custom scripts for all pages-->
   <script src="{%static 'js/sb-admin-2.min.js' %}"></script>
 
+  <!-- Block for scripts that need jQuery (loaded after jQuery) -->
+  {% block extra_js_after %}
+  {% endblock %}
+
 </body>
 
 </html>

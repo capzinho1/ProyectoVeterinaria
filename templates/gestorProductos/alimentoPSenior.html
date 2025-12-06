@@ -266,6 +266,7 @@ v{% load static %}
                         data-bs-toggle="modal"
                         data-bs-target="#modalDetalle"
                         data-id="{{ producto.id }}"
+                        data-tipo="ps"
                         data-nombre="{{ producto.nombre|escapejs }}"
                         data-descripcion="{{ producto.descripcion|escapejs }}"
                         data-precio="{{ producto.precio }}"
@@ -352,8 +353,8 @@ v{% load static %}
             img.alt = "";
         }
 
-        const baseUrl = "{% url 'agregar_carrito' 'ps' 0 %}";
-        document.getElementById("formAgregar").action = baseUrl.replace('/0/', '/' + id + '/');
+        const tipo = btn.dataset.tipo || "";
+        document.getElementById("formAgregar").action = `/carrito/agregar/${tipo}/${id}/`;
     });
 
     document.getElementById("btnMas").onclick = () => {

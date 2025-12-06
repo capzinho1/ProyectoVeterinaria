@@ -284,6 +284,7 @@
                             data-bs-toggle="modal"
                             data-bs-target="#productoModal"
                             data-id="{{ shampoo.id }}"
+                            data-tipo="shampoo"
                             data-nombre="{{ shampoo.nombre }}"
                             data-descripcion="{{ shampoo.descripcion }}"
                             data-precio="{{ shampoo.precio }}"
@@ -326,7 +327,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                         <button type="submit" class="btn btn-success">Agregar al Carrito</button>
                     </div>
                 </form>
@@ -347,13 +348,14 @@
             const precio = button.getAttribute('data-precio');
             const imagen = button.getAttribute('data-imagen');
 
+            const tipo = button.getAttribute('data-tipo');
+            
             document.getElementById('productoModalLabel').textContent = nombre;
             document.getElementById('productoDescripcion').textContent = descripcion;
             document.getElementById('productoPrecio').textContent = '$' + precio;
             document.getElementById('productoImagen').src = imagen;
 
-            const baseUrl = "{% url 'agregar_carrito' 's' 0 %}";
-            document.getElementById('formAgregar').action = baseUrl.replace('/0/', '/' + id + '/');
+            document.getElementById('formAgregar').action = `/carrito/agregar/${tipo}/${id}/`;
         });
 
         // Cantidad

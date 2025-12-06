@@ -1,0 +1,153 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha Clínica - {{ ficha.mascota.nombre }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar { background-color: #1ed1da; }
+        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'vet_veterinario' %}">
+                <i class="bi bi-heart-pulse"></i> Veterinaria Pamela
+            </a>
+            <div class="ms-auto">
+                <a href="{% url 'vet_fichas_clinicas' %}" class="btn btn-outline-light btn-sm me-2">Volver</a>
+                <a href="{% url 'vet_veterinario' %}" class="btn btn-outline-light btn-sm">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-file-medical"></i> Ficha Clínica - {{ ficha.mascota.nombre }}</h2>
+            <a href="{% url 'vet_ficha_editar' ficha.id %}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Información General</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Mascota:</strong> 
+                            <a href="{% url 'vet_paciente_detalle' ficha.mascota.id %}">{{ ficha.mascota.nombre }}</a>
+                        </p>
+                        <p><strong>Veterinario:</strong> {{ ficha.veterinario.username|default:"-" }}</p>
+                        <p><strong>Fecha de Creación:</strong> {{ ficha.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                        <p><strong>Última Actualización:</strong> {{ ficha.fecha_actualizacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+
+                {% if ficha.historial_medico %}
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Historial Médico</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ ficha.historial_medico|linebreaks }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if ficha.alergias %}
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">Alergias Conocidas</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ ficha.alergias|linebreaks }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if ficha.medicamentos_permanentes %}
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">Medicamentos Permanentes</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ ficha.medicamentos_permanentes|linebreaks }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if ficha.notas_generales %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Notas Generales</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ ficha.notas_generales|linebreaks }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Historial</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Consultas</h6>
+                        {% if consultas %}
+                            <ul class="list-group mb-3">
+                                {% for consulta in consultas|slice:":5" %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'vet_consulta_detalle' consulta.id %}">
+                                        {{ consulta.fecha_consulta|date:"d/m/Y" }}
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">No hay consultas</p>
+                        {% endif %}
+
+                        <h6>Vacunas</h6>
+                        {% if vacunas %}
+                            <ul class="list-group mb-3">
+                                {% for vacuna in vacunas|slice:":5" %}
+                                <li class="list-group-item">
+                                    {{ vacuna.nombre_vacuna }} - {{ vacuna.fecha_aplicacion|date:"d/m/Y" }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">No hay vacunas</p>
+                        {% endif %}
+
+                        <h6>Tratamientos</h6>
+                        {% if tratamientos %}
+                            <ul class="list-group">
+                                {% for tratamiento in tratamientos|slice:":5" %}
+                                <li class="list-group-item">
+                                    {{ tratamiento.nombre_tratamiento }} - {{ tratamiento.get_estado_display }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">No hay tratamientos</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

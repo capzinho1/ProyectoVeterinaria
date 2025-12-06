@@ -201,7 +201,34 @@
 
 <script>
 
-    function cargarTabla(id, urlApi, editUrl, deleteUrl) {
+    function cargarTablaSinMarca(id, urlApi, editUrl, deleteUrl) {
+        $('#' + id).DataTable({
+            ajax: urlApi,
+            destroy: true,
+            columns: [
+                { data: "codigo", title: "Código" },
+                { data: "nombre", title: "Nombre" },
+                { data: "stock",  title: "Stock" },
+                { data: "precio", title: "Precio" },
+                {
+                    data: "codigo",
+                    title: "Acciones",
+                    orderable: false,
+                    render: function(codigo) {
+                        return `
+                            <a href="${editUrl}${codigo}/" class="btn btn-warning btn-sm me-2">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="${deleteUrl}${codigo}/" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')">
+                                <i class="bi bi-trash"></i>
+                            </a>`;
+                    }
+                }
+            ]
+        });
+    }
+
+    function cargarTablaConMarca(id, urlApi, editUrl, deleteUrl) {
         $('#' + id).DataTable({
             ajax: urlApi,
             destroy: true,
@@ -217,10 +244,10 @@
                     orderable: false,
                     render: function(codigo) {
                         return `
-                            <a href="${editUrl.replace('999', codigo)}" class="btn btn-warning btn-sm me-2">
+                            <a href="${editUrl}${codigo}/" class="btn btn-warning btn-sm me-2">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="${deleteUrl.replace('999', codigo)}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')">
+                            <a href="${deleteUrl}${codigo}/" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')">
                                 <i class="bi bi-trash"></i>
                             </a>`;
                     }
@@ -230,9 +257,9 @@
     }
 
     $(document).ready(function(){
-        cargarTabla("dt-antiparasitario", "{% url 'api_antiparasitario' %}", "/editar/antiparasitario/", "/eliminar/antiparasitario/");
-        cargarTabla("dt-shampoo", "{% url 'api_shampoo' %}", "/editar/shampoo/", "/eliminar/shampoo/");
-        cargarTabla("dt-medicamentos", "{% url 'api_medicamento' %}", "/editar/medicamento/", "/eliminar/medicamento/");
+        cargarTablaSinMarca("dt-antiparasitario", "{% url 'api_antiparasitario' %}", "/editar/antiparasitario/", "/eliminar/antiparasitario/");
+        cargarTablaConMarca("dt-shampoo", "{% url 'api_shampoo' %}", "/editar/shampoo/", "/eliminar/shampoo/");
+        cargarTablaSinMarca("dt-medicamentos", "{% url 'api_medicamento' %}", "/editar/medicamento/", "/eliminar/medicamento/");
     });
 
     function mostrarTabla(cat) {

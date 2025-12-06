@@ -234,10 +234,10 @@
                     orderable: false,
                     render: function(codigo) {
                         return `
-                            <a href="${editUrl.replace('999', codigo)}" class="btn btn-warning btn-sm me-2">
+                            <a href="${editUrl}${codigo}/" class="btn btn-warning btn-sm me-2">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="${deleteUrl.replace('999', codigo)}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')">
+                            <a href="${deleteUrl}${codigo}/" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')">
                                 <i class="bi bi-trash"></i>
                             </a>`;
                     }

@@ -67,35 +67,72 @@
 
             <form method="post">
                 {% csrf_token %}
+                
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Errores en el formulario:</strong>
+                        <ul>
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ field }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- Código -->
+                <div class="mb-3">
+                    <label for="id_codigo" class="form-label">Código *</label>
+                    {{ form.codigo }}
+                    {% if form.codigo.errors %}
+                        <div class="text-danger">{{ form.codigo.errors }}</div>
+                    {% endif %}
+                </div>
 
                 <!-- Nombre -->
                 <div class="mb-3">
-                    <label for="id_nombre" class="form-label">Nombre</label>
-                    <input type="text" class="form-control" id="id_nombre" name="nombre" placeholder="Ingrese nombre">
+                    <label for="id_nombre" class="form-label">Nombre *</label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                        <div class="text-danger">{{ form.nombre.errors }}</div>
+                    {% endif %}
                 </div>
 
                 <!-- Marca -->
                 <div class="mb-3">
-                    <label for="id_marca" class="form-label">Marca</label>
-                    <input type="text" class="form-control" id="id_marca" name="marca" placeholder="Ingrese marca">
+                    <label for="id_marca" class="form-label">Marca *</label>
+                    {{ form.marca }}
+                    {% if form.marca.errors %}
+                        <div class="text-danger">{{ form.marca.errors }}</div>
+                    {% endif %}
                 </div>
 
                 <!-- Precio -->
                 <div class="mb-3">
-                    <label for="id_precio" class="form-label">Precio</label>
-                    <input type="number" class="form-control" id="id_precio" name="precio" placeholder="Ingrese precio">
+                    <label for="id_precio" class="form-label">Precio *</label>
+                    {{ form.precio }}
+                    {% if form.precio.errors %}
+                        <div class="text-danger">{{ form.precio.errors }}</div>
+                    {% endif %}
                 </div>
 
                 <!-- Stock -->
                 <div class="mb-3">
-                    <label for="id_stock" class="form-label">Stock</label>
-                    <input type="number" class="form-control" id="id_stock" name="stock" placeholder="Ingrese stock">
+                    <label for="id_stock" class="form-label">Stock *</label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}
+                        <div class="text-danger">{{ form.stock.errors }}</div>
+                    {% endif %}
                 </div>
 
                 <!-- Descripción -->
                 <div class="mb-3">
-                    <label for="id_descripcion" class="form-label">Descripción</label>
-                    <textarea class="form-control" id="id_descripcion" name="descripcion" rows="3" placeholder="Ingrese descripción"></textarea>
+                    <label for="id_descripcion" class="form-label">Descripción *</label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <div class="text-danger">{{ form.descripcion.errors }}</div>
+                    {% endif %}
                 </div>
 
                 <!-- Botones -->

@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receta - Detalle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar { background-color: #1ed1da; }
+        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'vet_veterinario' %}">
+                <i class="bi bi-heart-pulse"></i> Veterinaria Pamela
+            </a>
+            <div class="ms-auto">
+                <a href="{% url 'vet_recetas' %}" class="btn btn-outline-light btn-sm me-2">Volver</a>
+                <a href="{% url 'vet_veterinario' %}" class="btn btn-outline-light btn-sm">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-prescription"></i> Receta Médica</h2>
+            <a href="{% url 'vet_prescripcion_agregar' receta.id %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Agregar Prescripción
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Información de la Receta</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Fecha de Emisión:</strong> {{ receta.fecha_emision|date:"d/m/Y H:i" }}</p>
+                        <p><strong>Paciente:</strong> 
+                            <a href="{% url 'vet_paciente_detalle' receta.consulta.mascota.id %}">
+                                {{ receta.consulta.mascota.nombre }}
+                            </a>
+                        </p>
+                        <p><strong>Consulta:</strong> 
+                            <a href="{% url 'vet_consulta_detalle' receta.consulta.id %}">
+                                Ver Consulta
+                            </a>
+                        </p>
+                        <p><strong>Veterinario:</strong> {{ receta.veterinario.username|default:"-" }}</p>
+                        {% if receta.valida_hasta %}
+                        <p><strong>Válida Hasta:</strong> {{ receta.valida_hasta|date:"d/m/Y" }}</p>
+                        {% endif %}
+                        <hr>
+                        <p><strong>Instrucciones:</strong></p>
+                        <p>{{ receta.instrucciones|linebreaks }}</p>
+                    </div>
+                </div>
+
+                <!-- Prescripciones -->
+                <div class="card">
+                    <div class="card-header bg-success text-white d-flex justify-content-between">
+                        <h5 class="mb-0">Prescripciones</h5>
+                        <a href="{% url 'vet_prescripcion_agregar' receta.id %}" class="btn btn-sm btn-light">
+                            <i class="bi bi-plus-circle"></i> Agregar
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        {% if prescripciones %}
+                            {% for prescripcion in prescripciones %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h6>{{ prescripcion.medicamento }}</h6>
+                                    <p class="mb-1"><strong>Dosis:</strong> {{ prescripcion.dosis }}</p>
+                                    <p class="mb-1"><strong>Frecuencia:</strong> {{ prescripcion.frecuencia }}</p>
+                                    <p class="mb-1"><strong>Duración:</strong> {{ prescripcion.duracion }}</p>
+                                    <p class="mb-1"><strong>Cantidad:</strong> {{ prescripcion.cantidad }}</p>
+                                    {% if prescripcion.notas %}
+                                    <p class="mb-0"><strong>Notas:</strong> {{ prescripcion.notas }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No hay prescripciones en esta receta</p>
+                            <a href="{% url 'vet_prescripcion_agregar' receta.id %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Agregar Primera Prescripción
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

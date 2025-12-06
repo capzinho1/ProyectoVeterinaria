@@ -18,8 +18,19 @@ from django.contrib import admin
 from django.urls import path,include
 from django.views.generic.base import TemplateView
 from gestorProductos.views import logout_view
-from gestorUser.views import index, vetInicio, login_redirect
+from gestorUser.views import index, vetInicio, vet_veterinario, login_redirect
 from django.shortcuts import redirect
+from django.contrib.auth.views import LoginView
+
+
+def root_redirect(request):
+    """Redirige a login si no está autenticado, o a la página correspondiente si lo está"""
+    if request.user.is_authenticated:
+        # Usuario autenticado, redirigir según su rol
+        return login_redirect(request)
+    else:
+        # Usuario no autenticado, redirigir al login
+        return redirect('login')
 
 
 urlpatterns = [
@@ -29,7 +40,9 @@ urlpatterns = [
     path('logout', logout_view, name='logout'),
     path('login_redirect/', login_redirect, name='login_redirect'),
     path('vet_inicio/', vetInicio, name='vet_inicio'),
+    path('vet_veterinario/', vet_veterinario, name='vet_veterinario'),
     path('usuarios/', include("gestorUser.urls")),
-    path('', include("gestorProductos.urls")),
+    path('', root_redirect, name='root'),
+    path('productos/', include("gestorProductos.urls")),
 ]
 

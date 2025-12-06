@@ -207,7 +207,11 @@
                                                 <td>{{ producto.nombre }}</td>
                                                 <td>${{ producto.precio|floatformat:2 }}</td>
                                                 <td>{{ producto.stock }}</td>
-                                                <td>{{ producto.category }}</td>
+                                                <td>{{ producto.categoria_nombre|default:"General" }}</td>
+                                            </tr>
+                                        {% empty %}
+                                            <tr>
+                                                <td colspan="4" class="text-center">No hay productos recientes</td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>
@@ -310,128 +314,212 @@
 
 {% block extra_js %}
 {% if user.is_superuser %}
-<script id="categorias-data" type="application/json">{{ categorias_count|json_script:"categorias-data" }}</script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
 <script>
-var categoriasData = JSON.parse(document.getElementById('categorias-data').textContent);
-// Pie Chart Example
-var ctx = document.getElementById("myPieChart");
-var myPieChart = new Chart(ctx, {
-  type: 'doughnut',
-  data: {
-    labels: ["Alimentos Perro", "Alimentos Gato", "Snacks", "Medicamentos", "Accesorios", "Otros"],
-    datasets: [{
-      data: Object.values(categoriasData),
-      backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796'],
-      hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#f4b619', '#e02d1b', '#6c757d'],
-      hoverBorderColor: "rgba(234, 236, 244, 1)",
-    }],
-  },
-  options: {
-    maintainAspectRatio: false,
-    plugins: {
-      tooltip: {
-        backgroundColor: "rgb(255,255,255)",
-        bodyColor: "#858796",
-        borderColor: '#dddfeb',
-        borderWidth: 1,
-        padding: 15,
-        displayColors: false,
-        caretPadding: 10,
-      },
-      legend: {
-        display: false
-      }
-    },
-    cutout: '80%',
-  },
-});
+    // Pasar datos de categorías directamente como variable JavaScript
+    var categoriasData = JSON.parse('{{ categorias_count|escapejs }}');
+</script>
+{% endif %}
+{% endblock %}
 
-// Area Chart Example
-var ctx = document.getElementById("myAreaChart");
-var myAreaChart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: ["Alimentos Perro", "Alimentos Gato", "Snacks", "Medicamentos", "Accesorios", "Otros"],
-    datasets: [{
-      label: "Cantidad",
-      lineTension: 0.3,
-      backgroundColor: "rgba(78, 115, 223, 0.05)",
-      borderColor: "rgba(78, 115, 223, 1)",
-      pointRadius: 3,
-      pointBackgroundColor: "rgba(78, 115, 223, 1)",
-      pointBorderColor: "rgba(78, 115, 223, 1)",
-      pointHoverRadius: 3,
-      pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
-      pointHoverBorderColor: "rgba(78, 115, 223, 1)",
-      pointHitRadius: 10,
-      pointBorderWidth: 2,
-      data: Object.values(categoriasData),
-    }],
-  },
-  options: {
-    maintainAspectRatio: false,
-    layout: {
-      padding: {
-        left: 10,
-        right: 25,
-        top: 25,
-        bottom: 0
-      }
-    },
-    scales: {
-      x: {
-        grid: {
-          display: false,
-          drawBorder: false
-        },
-        ticks: {
-          maxTicksLimit: 7
-        }
-      },
-      y: {
-        ticks: {
-          maxTicksLimit: 5,
-          padding: 10,
-          callback: function(value, index, values) {
-            return number_format(value);
-          }
-        },
-        grid: {
-          color: "rgb(234, 236, 244)",
-          zeroLineColor: "rgb(234, 236, 244)",
-          drawBorder: false,
-          borderDash: [2],
-          zeroLineBorderDash: [2]
-        }
-      },
-    },
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        backgroundColor: "rgb(255,255,255)",
-        bodyColor: "#858796",
-        titleMarginBottom: 10,
-        titleColor: '#6e707e',
-        titleFontSize: 14,
-        borderColor: '#dddfeb',
-        borderWidth: 1,
-        padding: 15,
-        displayColors: false,
-        intersect: false,
-        mode: 'index',
-        caretPadding: 10,
-        callbacks: {
-          label: function(tooltipItem) {
-            var datasetLabel = tooltipItem.dataset.label || '';
-            return datasetLabel + ': ' + number_format(tooltipItem.parsed.y);
-          }
-        }
-      }
+{% block extra_js_after %}
+{% if user.is_superuser %}
+<!-- Cargar Chart.js y DataTables DESPUÉS de jQuery -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+<script>
+// Función para formatear números
+function number_format(number, decimals, dec_point, thousands_sep) {
+    number = (number + '').replace(',', '').replace(' ', '');
+    var n = !isFinite(+number) ? 0 : +number,
+        prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+        sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+        dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+        s = '',
+        toFixedFix = function(n, prec) {
+            var k = Math.pow(10, prec);
+            return '' + Math.round(n * k) / k;
+        };
+    s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+    if (s[0].length > 3) {
+        s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
     }
-  }
+    if ((s[1] || '').length < prec) {
+        s[1] = s[1] || '';
+        s[1] += new Array(prec - s[1].length + 1).join('0');
+    }
+    return s.join(dec);
+}
+
+// Esperar a que el DOM esté completamente cargado
+$(document).ready(function() {
+    // Inicializar DataTable para productos recientes
+    if ($('#dataTable').length) {
+        $('#dataTable').DataTable({
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "Ningún dato disponible en esta tabla",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix": "",
+                "sSearch": "Buscar:",
+                "sUrl": "",
+                "sInfoThousands": ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                }
+            },
+            pageLength: 5,
+            responsive: true,
+            order: [[0, 'desc']]
+        });
+    }
+
+    // Cargar datos de categorías y crear gráficos
+    try {
+        // Verificar que categoriasData esté definido
+        if (typeof categoriasData !== 'undefined' && categoriasData) {
+            // Verificar que los elementos del canvas existan antes de crear los gráficos
+            var pieCtx = document.getElementById("myPieChart");
+            var areaCtx = document.getElementById("myAreaChart");
+            
+            if (pieCtx) {
+                // Pie Chart Example
+                var myPieChart = new Chart(pieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ["Alimentos Perro", "Alimentos Gato", "Snacks", "Medicamentos", "Accesorios", "Otros"],
+                        datasets: [{
+                            data: Object.values(categoriasData),
+                            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796'],
+                            hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#f4b619', '#e02d1b', '#6c757d'],
+                            hoverBorderColor: "rgba(234, 236, 244, 1)",
+                        }],
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyColor: "#858796",
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                padding: 15,
+                                displayColors: false,
+                                caretPadding: 10,
+                            },
+                            legend: {
+                                display: false
+                            }
+                        },
+                        cutout: '80%',
+                    },
+                });
+            }
+
+            if (areaCtx) {
+                // Area Chart Example
+                var myAreaChart = new Chart(areaCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ["Alimentos Perro", "Alimentos Gato", "Snacks", "Medicamentos", "Accesorios", "Otros"],
+                        datasets: [{
+                            label: "Cantidad",
+                            lineTension: 0.3,
+                            backgroundColor: "rgba(78, 115, 223, 0.05)",
+                            borderColor: "rgba(78, 115, 223, 1)",
+                            pointRadius: 3,
+                            pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                            pointBorderColor: "rgba(78, 115, 223, 1)",
+                            pointHoverRadius: 3,
+                            pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                            pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                            pointHitRadius: 10,
+                            pointBorderWidth: 2,
+                            data: Object.values(categoriasData),
+                        }],
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 25,
+                                top: 25,
+                                bottom: 0
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    maxTicksLimit: 7
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    maxTicksLimit: 5,
+                                    padding: 10,
+                                    callback: function(value, index, values) {
+                                        return number_format(value);
+                                    }
+                                },
+                                grid: {
+                                    color: "rgb(234, 236, 244)",
+                                    zeroLineColor: "rgb(234, 236, 244)",
+                                    drawBorder: false,
+                                    borderDash: [2],
+                                    zeroLineBorderDash: [2]
+                                }
+                            },
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyColor: "#858796",
+                                titleMarginBottom: 10,
+                                titleColor: '#6e707e',
+                                titleFontSize: 14,
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                padding: 15,
+                                displayColors: false,
+                                intersect: false,
+                                mode: 'index',
+                                caretPadding: 10,
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        var datasetLabel = tooltipItem.dataset.label || '';
+                                        return datasetLabel + ': ' + number_format(tooltipItem.parsed.y);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error al cargar gráficos:', error);
+    }
 });
 </script>
 {% endif %}

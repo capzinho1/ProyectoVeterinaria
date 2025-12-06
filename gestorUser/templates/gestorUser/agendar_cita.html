@@ -115,6 +115,32 @@
         .btn-primary:hover {
             background-color: #17b7c0;
         }
+        
+        /* Estilos para campos con errores */
+        .form-control.is-invalid,
+        .form-select.is-invalid {
+            border-color: #dc3545;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6.4.4.4-.4m0 4.8-.4-.4-.4.4'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        .form-control.is-invalid:focus,
+        .form-select.is-invalid:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+        
+        .text-danger small {
+            display: block;
+            margin-top: 0.25rem;
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
     </style>
 </head>
 
@@ -226,23 +252,149 @@
                         </div>
                     {% endfor %}
                 {% endif %}
-                <form method="post">
+                <form method="post" novalidate>
                     {% csrf_token %}
-                    {% for field in formulario_cita %}
-                        <div class="form-group mb-3">
-                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.errors %}
-                                <div class="text-danger">
-                                    {% for error in field.errors %}
-                                        <small>{{ error }}</small>
+                    
+                    <!-- Resumen de errores del formulario -->
+                    {% if formulario_cita.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <h5 class="alert-heading">
+                                <i class="bi bi-exclamation-triangle"></i> Por favor corrige los siguientes errores:
+                            </h5>
+                            <ul class="mb-0">
+                                {% for field_name, error_list in formulario_cita.errors.items %}
+                                    {% if field_name != '__all__' %}
+                                        {% for error in error_list %}
+                                            <li>
+                                                <strong>
+                                                    {% if field_name == 'mascota' %}Nombre de Mascota
+                                                    {% elif field_name == 'tipo_mascota' %}Tipo de Mascota
+                                                    {% elif field_name == 'titular' %}Nombre del Titular
+                                                    {% elif field_name == 'fecha' %}Fecha de la Cita
+                                                    {% elif field_name == 'hora' %}Hora de la Cita
+                                                    {% elif field_name == 'motivo' %}Motivo de la Consulta
+                                                    {% else %}{{ field_name }}{% endif %}:
+                                                </strong>
+                                                {{ error }}
+                                            </li>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if formulario_cita.non_field_errors %}
+                                    {% for error in formulario_cita.non_field_errors %}
+                                        <li>{{ error }}</li>
                                     {% endfor %}
-                                </div>
-                            {% endif %}
+                                {% endif %}
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    {% endfor %}
+                    {% endif %}
+                    
+                    <!-- Nombre de Mascota (Obligatorio) -->
+                    <div class="mb-3">
+                        <label for="{{ formulario_cita.mascota.id_for_label }}" class="form-label">
+                            {{ formulario_cita.mascota.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ formulario_cita.mascota }}
+                        {% if formulario_cita.mascota.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in formulario_cita.mascota.errors %}
+                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Ingrese el nombre de su mascota</small>
+                    </div>
+                    
+                    <!-- Tipo de Mascota (Obligatorio) -->
+                    <div class="mb-3">
+                        <label for="{{ formulario_cita.tipo_mascota.id_for_label }}" class="form-label">
+                            {{ formulario_cita.tipo_mascota.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ formulario_cita.tipo_mascota }}
+                        {% if formulario_cita.tipo_mascota.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in formulario_cita.tipo_mascota.errors %}
+                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Nombre del Titular (Opcional) -->
+                    <div class="mb-3">
+                        <label for="{{ formulario_cita.titular.id_for_label }}" class="form-label">
+                            {{ formulario_cita.titular.label }}
+                        </label>
+                        {{ formulario_cita.titular }}
+                        {% if formulario_cita.titular.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in formulario_cita.titular.errors %}
+                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Opcional - Si no lo indica, se usará su nombre de usuario</small>
+                    </div>
+                    
+                    <!-- Fecha (Obligatorio) -->
+                    <div class="mb-3">
+                        <label for="{{ formulario_cita.fecha.id_for_label }}" class="form-label">
+                            {{ formulario_cita.fecha.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ formulario_cita.fecha }}
+                        {% if formulario_cita.fecha.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in formulario_cita.fecha.errors %}
+                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Seleccione una fecha futura</small>
+                    </div>
+                    
+                    <!-- Hora (Obligatorio) -->
+                    <div class="mb-3">
+                        <label for="{{ formulario_cita.hora.id_for_label }}" class="form-label">
+                            {{ formulario_cita.hora.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ formulario_cita.hora }}
+                        {% if formulario_cita.hora.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in formulario_cita.hora.errors %}
+                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Horario de atención: 09:00 - 18:00</small>
+                    </div>
+                    
+                    <!-- Motivo (Opcional) -->
+                    <div class="mb-3">
+                        <label for="{{ formulario_cita.motivo.id_for_label }}" class="form-label">
+                            {{ formulario_cita.motivo.label }}
+                        </label>
+                        {{ formulario_cita.motivo }}
+                        {% if formulario_cita.motivo.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in formulario_cita.motivo.errors %}
+                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Opcional - Describa el motivo de la consulta</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <span class="text-danger">*</span> Campos obligatorios
+                        </small>
+                    </div>
+                    
                     <div class="text-center">
-                        <button type="submit" class="btn btn-primary">Agendar Cita</button>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-calendar-check"></i> Agendar Cita
+                        </button>
                     </div>
                 </form>
 
@@ -256,16 +408,18 @@
                                 <th>Fecha</th>
                                 <th>Hora</th>
                                 <th>Tipo de Mascota</th>
-                                <th>Descripción</th>
+                                <th>Mascota</th>
+                                <th>Motivo</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for cita in citas_usuario %}
                             <tr>
-                                <td>{{ cita.fecha }}</td>
-                                <td>{{ cita.hora }}</td>
-                                <td>{{ cita.tipo_mascota }}</td>
-                                <td>{{ cita.descripcion }}</td>
+                                <td>{{ cita.fecha|date:"d/m/Y" }}</td>
+                                <td>{{ cita.hora|time:"H:i" }}</td>
+                                <td>{{ cita.get_tipo_mascota_display }}</td>
+                                <td>{{ cita.mascota }}</td>
+                                <td>{{ cita.motivo|truncatechars:50|default:"Sin motivo especificado" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -298,6 +452,71 @@
             dropdown.addEventListener('hidden.bs.dropdown', function(){
                 this.querySelectorAll('.dropdown-menu.show')
                     .forEach(sub => sub.classList.remove('show'));
+            });
+        });
+        
+        // Marcar campos con errores y validación
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (!form) return;
+            
+            // Agregar clase is-invalid a campos con errores existentes
+            document.querySelectorAll('.text-danger').forEach(function(errorDiv) {
+                const parentDiv = errorDiv.closest('.mb-3');
+                if (parentDiv) {
+                    const input = parentDiv.querySelector('input, select, textarea');
+                    if (input) {
+                        input.classList.add('is-invalid');
+                    }
+                }
+            });
+            
+            // Validación en tiempo real al cambiar campos
+            form.querySelectorAll('input, select, textarea').forEach(function(field) {
+                // Remover clase is-invalid al escribir/seleccionar
+                field.addEventListener('input', function() {
+                    if (this.value && this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                        // Remover mensaje de error si existe
+                        const errorDiv = this.closest('.mb-3')?.querySelector('.text-danger');
+                        if (errorDiv && this.value.trim()) {
+                            errorDiv.style.display = 'none';
+                        }
+                    }
+                });
+                
+                field.addEventListener('change', function() {
+                    if (this.value) {
+                        this.classList.remove('is-invalid');
+                    }
+                });
+            });
+            
+            // Validación antes de enviar
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                let firstErrorField = null;
+                
+                // Validar campos obligatorios
+                const requiredFields = form.querySelectorAll('[required]');
+                requiredFields.forEach(function(field) {
+                    if (!field.value || !field.value.trim()) {
+                        field.classList.add('is-invalid');
+                        isValid = false;
+                        if (!firstErrorField) {
+                            firstErrorField = field;
+                        }
+                    }
+                });
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    if (firstErrorField) {
+                        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstErrorField.focus();
+                    }
+                    // El mensaje de error ya se mostrará desde el servidor
+                }
             });
         });
     </script>
