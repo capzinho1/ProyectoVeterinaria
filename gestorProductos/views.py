@@ -1063,6 +1063,52 @@ def home(request):
                 productos_recientes.append(producto)
 
         productos_recientes = sorted(productos_recientes, key=lambda x: x.id, reverse=True)[:5]
+        
+        # Productos con stock bajo (menos de 10 unidades) - más útil para gestión
+        productos_stock_bajo = []
+        for model in [Productos, PCProductos, PAProductos, PSProductos, AProductos, AGAProductos, AGCProductos, SnackGProductos, SnackPProductos, Antiparasitario, Medicamento, Shampoo, Cama, Collar, Juguete]:
+            model_name = model.__name__
+            url_config = urls_map.get(model_name, (None, None, None, None))
+            edit_url_name, edit_param, delete_url_name, delete_param = url_config
+            
+            for producto in model.objects.filter(stock__lt=10).order_by('stock')[:20]:  # Top 20 con menor stock
+                producto.categoria_nombre = categorias_map.get(model_name, 'Otros')
+                producto.modelo_nombre = model_name
+                
+                # Agregar URLs de editar y eliminar
+                if edit_url_name and delete_url_name:
+                    try:
+                        if edit_param == 'id':
+                            producto.url_editar = reverse(edit_url_name, args=[producto.id])
+                        elif edit_param == 'codigo' and hasattr(producto, 'codigo'):
+                            producto.url_editar = reverse(edit_url_name, args=[producto.codigo])
+                        else:
+                            producto.url_editar = '#'
+                        
+                        if delete_param == 'codigo_int' and hasattr(producto, 'codigo'):
+                            try:
+                                codigo_int = int(producto.codigo)
+                                producto.url_eliminar = reverse(delete_url_name, args=[codigo_int])
+                            except (ValueError, TypeError):
+                                try:
+                                    producto.url_eliminar = reverse(delete_url_name, args=[producto.codigo])
+                                except:
+                                    producto.url_eliminar = '#'
+                        elif delete_param == 'codigo' and hasattr(producto, 'codigo'):
+                            producto.url_eliminar = reverse(delete_url_name, args=[producto.codigo])
+                        else:
+                            producto.url_eliminar = '#'
+                    except Exception as e:
+                        producto.url_editar = '#'
+                        producto.url_eliminar = '#'
+                else:
+                    producto.url_editar = '#'
+                    producto.url_eliminar = '#'
+                
+                productos_stock_bajo.append(producto)
+        
+        # Ordenar por stock (menor primero)
+        productos_stock_bajo = sorted(productos_stock_bajo, key=lambda x: x.stock)[:20]
 
         context = {
             'categorias': categorias,
@@ -1070,7 +1116,8 @@ def home(request):
             'total_stock': total_stock,
             'valor_inventario': valor_inventario,
             'categorias_count': json.dumps(categorias_count),  # Convertir a JSON string
-            'productos_recientes': productos_recientes
+            'productos_recientes': productos_recientes,
+            'productos_stock_bajo': productos_stock_bajo
         }
     else:
         context = {'categorias': categorias}

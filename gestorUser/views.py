@@ -447,47 +447,62 @@ def agendar_cita(request):
                 # Ejecutar validaciones del modelo (clean())
                 # Esto verifica: fechas pasadas, citas duplicadas, etc.
                 cita.full_clean()
-                cita.save()  # Guardar en la base de datos
+                
+                # Guardar en la base de datos
+                cita.save()
                 
                 # Mensaje de éxito con información de la cita
                 messages.success(
                     request, 
-                    f"¡Cita agendada correctamente para {cita.mascota} el {cita.fecha} a las {cita.hora.strftime('%H:%M')}!"
+                    f"¡Cita agendada correctamente para {cita.mascota} el {cita.fecha.strftime('%d/%m/%Y')} a las {cita.hora.strftime('%H:%M')}!"
                 )
                 return redirect('agendar_cita')  # Recargar la página para mostrar mensaje
                 
             except ValidationError as e:
                 # ========== MANEJO DE ERRORES DE VALIDACIÓN ==========
                 # Si hay errores de validación del modelo, agregarlos al formulario
-                if hasattr(e, 'error_dict'):
-                    # Si el error tiene estructura de diccionario (errores por campo)
-                    for field, errors in e.error_dict.items():
-                        if field == '__all__':
-                            # Error general - agregar como non_field_error
-                            for error in errors:
-                                form.add_error(None, error)
-                        else:
-                            # Error de campo específico
-                            for error in errors:
-                                form.add_error(field, error)
-                elif hasattr(e, 'message_dict'):
-                    # Manejo alternativo para errores del modelo
-                    for field, errors in e.message_dict.items():
-                        if field == '__all__':
-                            for error in errors:
-                                form.add_error(None, error)
-                        else:
-                            for error in errors:
-                                form.add_error(field, error)
+                from django.core.exceptions import ValidationError as DjangoValidationError
+                
+                if isinstance(e, DjangoValidationError):
+                    # Manejar errores de validación de Django
+                    if hasattr(e, 'error_dict'):
+                        # Si el error tiene estructura de diccionario (errores por campo)
+                        for field, errors in e.error_dict.items():
+                            if field == '__all__':
+                                # Error general - agregar como non_field_error
+                                for error in errors:
+                                    form.add_error(None, error)
+                            else:
+                                # Error de campo específico
+                                for error in errors:
+                                    form.add_error(field, error)
+                    elif hasattr(e, 'message_dict'):
+                        # Manejo alternativo para errores del modelo
+                        for field, errors in e.message_dict.items():
+                            if field == '__all__':
+                                for error in errors:
+                                    form.add_error(None, error)
+                            else:
+                                for error in errors:
+                                    form.add_error(field, error)
+                    else:
+                        # Error general sin estructura específica - mostrar como mensaje
+                        error_message = str(e)
+                        form.add_error(None, error_message)
                 else:
-                    # Error general sin estructura específica - mostrar como mensaje
-                    error_message = str(e)
-                    messages.error(request, error_message)
+                    # Si no es ValidationError de Django, mostrar como mensaje general
+                    form.add_error(None, str(e))
                     
             except Exception as e:
                 # ========== MANEJO DE ERRORES INESPERADOS ==========
-                # Capturar cualquier otro error no previsto
-                messages.error(request, f"Error inesperado: {str(e)}")
+                # Capturar cualquier otro error no previsto y loguearlo
+                import traceback
+                error_trace = traceback.format_exc()
+                print(f"Error inesperado al agendar cita: {str(e)}")
+                print(f"Traceback: {error_trace}")
+                
+                # Agregar error al formulario para que se muestre
+                form.add_error(None, f"Error inesperado: {str(e)}")
         else:
             # ========== FORMULARIO NO VÁLIDO ==========
             # Si el formulario no es válido, mostrar mensaje general

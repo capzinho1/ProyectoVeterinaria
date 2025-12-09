@@ -180,36 +180,64 @@
 
             <!-- Content Row -->
             <div class="row">
-                <!-- Productos Recientes -->
+                <!-- Productos con Stock Bajo -->
                 <div class="col-lg-12 mb-4">
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Productos Recientes</h6>
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-exclamation-triangle text-warning"></i> Productos con Stock Bajo (< 10 unidades)
+                            </h6>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                    <thead>
+                                <table class="table table-bordered table-hover" id="productosStockBajo" width="100%" cellspacing="0">
+                                    <thead class="thead-light">
                                         <tr>
                                             <th>Código</th>
                                             <th>Nombre</th>
+                                            <th>Marca</th>
                                             <th>Precio</th>
                                             <th>Stock</th>
                                             <th>Categoría</th>
+                                            <th>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for producto in productos_recientes %}
-                                            <tr>
-                                                <td>{{ producto.codigo|default:"-" }}</td>
+                                        {% for producto in productos_stock_bajo %}
+                                            <tr class="{% if producto.stock == 0 %}table-danger{% elif producto.stock < 5 %}table-warning{% endif %}">
+                                                <td><strong>{{ producto.codigo|default:"-" }}</strong></td>
                                                 <td>{{ producto.nombre }}</td>
+                                                <td>{{ producto.marca|default:"-" }}</td>
                                                 <td>${{ producto.precio|floatformat:2 }}</td>
-                                                <td>{{ producto.stock }}</td>
+                                                <td>
+                                                    <span class="badge {% if producto.stock == 0 %}badge-danger{% elif producto.stock < 5 %}badge-warning{% else %}badge-info{% endif %}">
+                                                        {{ producto.stock }}
+                                                    </span>
+                                                </td>
                                                 <td>{{ producto.categoria_nombre|default:"General" }}</td>
+                                                    <td>
+                                                    {% if producto.url_editar and producto.url_editar != '#' %}
+                                                        <a href="{{ producto.url_editar }}" class="btn btn-sm btn-warning" title="Editar">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                    {% if producto.url_eliminar and producto.url_eliminar != '#' %}
+                                                        <a href="{{ producto.url_eliminar }}" class="btn btn-sm btn-danger" 
+                                                           onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')" title="Eliminar">
+                                                            <i class="fas fa-trash"></i>
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
                                             </tr>
                                         {% empty %}
                                             <tr>
-                                                <td colspan="5" class="text-center">No hay productos recientes</td>
+                                                <td colspan="7" class="text-center text-success">
+                                                    <i class="fas fa-check-circle"></i> ¡Excelente! No hay productos con stock bajo.
+                                                </td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>
@@ -352,6 +380,47 @@ function number_format(number, decimals, dec_point, thousands_sep) {
 
 // Esperar a que el DOM esté completamente cargado
 $(document).ready(function() {
+    // Inicializar DataTable para productos con stock bajo
+    if ($('#productosStockBajo').length) {
+        // Verificar que la tabla tenga filas (no solo el mensaje de "no hay productos")
+        const tbody = $('#productosStockBajo tbody');
+        const hasDataRows = tbody.find('tr').length > 0 && !tbody.find('tr td[colspan]').length;
+        
+        if (hasDataRows) {
+            $('#productosStockBajo').DataTable({
+                "language": {
+                    "sProcessing": "Procesando...",
+                    "sLengthMenu": "Mostrar _MENU_ registros",
+                    "sZeroRecords": "No se encontraron resultados",
+                    "sEmptyTable": "Ningún dato disponible en esta tabla",
+                    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                    "sInfoPostFix": "",
+                    "sSearch": "Buscar:",
+                    "sUrl": "",
+                    "sInfoThousands": ",",
+                    "sLoadingRecords": "Cargando...",
+                    "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                    },
+                    "oAria": {
+                        "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                    }
+                },
+                "order": [[4, "asc"]], // Ordenar por stock (menor primero)
+                "pageLength": 10,
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+                "destroy": true, // Permitir reinicialización
+                "responsive": true
+            });
+        }
+    }
+    
     // Inicializar DataTable para productos recientes SIN búsqueda
     if ($('#dataTable').length) {
         $('#dataTable').DataTable({

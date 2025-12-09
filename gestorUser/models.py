@@ -24,13 +24,29 @@ class CitaMedica(models.Model):
         pass
 
     def clean(self):
+        """Validación del modelo para citas médicas."""
+        from datetime import datetime
+        
+        # Validar que fecha y hora estén presentes
+        if not self.fecha or not self.hora:
+            return  # Dejar que el formulario valide los campos requeridos
+        
         # Check if appointment datetime is in the past
-        cita_datetime = timezone.make_aware(timezone.datetime.combine(self.fecha, self.hora))
-        if cita_datetime < timezone.now():
-            raise ValidationError("No se puede agendar una cita en el pasado.")
+        try:
+            # Combinar fecha y hora en un datetime naive
+            cita_datetime_naive = datetime.combine(self.fecha, self.hora)
+            # Convertir a datetime con timezone
+            cita_datetime = timezone.make_aware(cita_datetime_naive)
+            
+            # Comparar con el momento actual
+            if cita_datetime < timezone.now():
+                raise ValidationError("No se puede agendar una cita en el pasado.")
+        except (ValueError, TypeError) as e:
+            # Si hay error al combinar fecha/hora, dejar que el formulario lo maneje
+            pass
 
         # Check for overlapping appointments globally
-        overlapping = CitaMedica.objects.filter(fecha=self.fecha, hora=self.hora).exclude(pk=self.pk)
+        overlapping = CitaMedica.objects.filter(fecha=self.fecha, hora=self.hora).exclude(pk=self.pk if self.pk else None)
         if overlapping.exists():
             raise ValidationError("Ya hay una cita agendada para esa fecha y hora.")
 
