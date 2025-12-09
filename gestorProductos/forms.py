@@ -314,3 +314,156 @@ class DatatableJugueteForm(forms.ModelForm):
             **BASE_WIDGETS,
             'tipo': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+# -------------------------------
+# FORMULARIO DE CHECKOUT
+# -------------------------------
+class CheckoutForm(forms.Form):
+    """Formulario para completar el proceso de compra antes de la pasarela de pago"""
+    
+    # Datos del cliente
+    nombre_completo = forms.CharField(
+        max_length=200,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombre completo'
+        }),
+        label='Nombre Completo'
+    )
+    
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'correo@ejemplo.com'
+        }),
+        label='Correo Electrónico'
+    )
+    
+    telefono = forms.CharField(
+        max_length=20,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '+56 9 1234 5678'
+        }),
+        label='Teléfono'
+    )
+    
+    # Dirección de envío
+    direccion = forms.CharField(
+        max_length=300,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Calle, número, departamento'
+        }),
+        label='Dirección'
+    )
+    
+    ciudad = forms.CharField(
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ciudad'
+        }),
+        label='Ciudad'
+    )
+    
+    codigo_postal = forms.CharField(
+        max_length=10,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '1234567'
+        }),
+        label='Código Postal'
+    )
+    
+    # Método de pago
+    METODO_PAGO_CHOICES = [
+        ('tarjeta', 'Tarjeta de Crédito/Débito'),
+        ('transferencia', 'Transferencia Bancaria'),
+        ('efectivo', 'Pago contra entrega'),
+    ]
+    
+    metodo_pago = forms.ChoiceField(
+        choices=METODO_PAGO_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        }),
+        label='Método de Pago'
+    )
+    
+    # Información de tarjeta (opcional, solo si método es tarjeta)
+    numero_tarjeta = forms.CharField(
+        max_length=19,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '1234 5678 9012 3456',
+            'maxlength': '19'
+        }),
+        label='Número de Tarjeta'
+    )
+    
+    fecha_vencimiento = forms.CharField(
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'MM/AA',
+            'maxlength': '5'
+        }),
+        label='Fecha de Vencimiento (MM/AA)'
+    )
+    
+    cvv = forms.CharField(
+        max_length=4,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '123',
+            'maxlength': '4',
+            'type': 'password'
+        }),
+        label='CVV'
+    )
+    
+    # Notas adicionales
+    notas = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Instrucciones adicionales para la entrega (opcional)'
+        }),
+        label='Notas Adicionales'
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        metodo_pago = cleaned_data.get('metodo_pago')
+        numero_tarjeta = cleaned_data.get('numero_tarjeta')
+        fecha_vencimiento = cleaned_data.get('fecha_vencimiento')
+        cvv = cleaned_data.get('cvv')
+        
+        # Si el método de pago es tarjeta, validar campos de tarjeta
+        if metodo_pago == 'tarjeta':
+            if not numero_tarjeta:
+                raise forms.ValidationError({
+                    'numero_tarjeta': 'El número de tarjeta es requerido cuando se selecciona pago con tarjeta.'
+                })
+            if not fecha_vencimiento:
+                raise forms.ValidationError({
+                    'fecha_vencimiento': 'La fecha de vencimiento es requerida cuando se selecciona pago con tarjeta.'
+                })
+            if not cvv:
+                raise forms.ValidationError({
+                    'cvv': 'El CVV es requerido cuando se selecciona pago con tarjeta.'
+                })
+        
+        return cleaned_data

@@ -17,7 +17,7 @@ from .forms import (
     DatatableProductosPSForm, DatatableProductosAForm, DatatableAGAForm,
     DatatableAGCForm, DatatableSnackGForm, DatatableSnackPForm,
     DatatableAntiparasitarioForm, DatatableMedicamentoForm, DatatableShampooForm,
-    DatatableCollarForm, DatatableCamaForm, DatatableJugueteForm
+    DatatableCollarForm, DatatableCamaForm, DatatableJugueteForm, CheckoutForm
 )
 from .models import (
     Productos, Categoria, Carrito, PCProductos, PAProductos, PSProductos,
@@ -238,7 +238,10 @@ def editarProductoPC(request, codigo):
         form = DatatableProductosPCForm(request.POST, instance=pcproducto)
         if form.is_valid():
             form.save()  # Guarda los cambios en el modelo
-            return redirect('datatable2')  # Redirige a la lista de productos
+            messages.success(request, "Producto actualizado correctamente.")
+            return redirect('datatable')  # Redirige al catálogo de perros
+        else:
+            messages.error(request, "Error al actualizar el producto.")
     else:
         # Crea el formulario con la instancia del producto existente
         form = DatatableProductosPCForm(instance=pcproducto)
@@ -254,7 +257,10 @@ def editarProductoPS(request, codigo):
         form = DatatableProductosPSForm(request.POST, instance=psproducto)
         if form.is_valid():
             form.save()  # Guarda los cambios en el modelo
-            return redirect('datatable4')  # Redirige a la lista de productos
+            messages.success(request, "Producto actualizado correctamente.")
+            return redirect('datatable')  # Redirige al catálogo de perros
+        else:
+            messages.error(request, "Error al actualizar el producto.")
     else:
         # Crea el formulario con la instancia del producto existente
         form = DatatableProductosPSForm(instance=psproducto)
@@ -1094,16 +1100,16 @@ def guardar_producto(request):
 # =================================
 def alimentoGatoAData(request):
     # Mostrar todos los productos sin límite
-    agaproductos = AGAProductos.objects.all().order_by('-id')
+    agaproductos = AGAProductos.objects.all().order_by()
     return render(request, 'gestorProductos/alimentoGAdulto.html', {'agaproductos': agaproductos})
 
 def alimentoGatoCData(request):
     # Mostrar todos los productos sin límite
-    agcproductos = AGCProductos.objects.all().order_by('-id')
+    agcproductos = AGCProductos.objects.all().order_by()
     return render(request, 'gestorProductos/alimentoGCachorro.html', {'agcproductos': agcproductos})
 
 def Snack_gato(request):
-    snackgproductos = SnackGProductos.objects.all().order_by('-id')
+    snackgproductos = SnackGProductos.objects.all().order_by()
     return render(request, 'gestorProductos/snackGato.html', {'snackgproductos': snackgproductos})
 
 # ===========================
@@ -1111,35 +1117,35 @@ def Snack_gato(request):
 # ===========================
 
 def Snack_Perro(request):
-    snackpproductos = SnackPProductos.objects.all().order_by('-id')
+    snackpproductos = SnackPProductos.objects.all().order_by()
     return render(request, 'gestorProductos/snackPerro.html', {'snackpproductos': snackpproductos})
 
 # ===========================
 # VISTAS DE OTROS PRODUCTOS
 # ===========================
 def medicamentos(request):
-    medicamento = Medicamento.objects.all().order_by('-id')
+    medicamento = Medicamento.objects.all().order_by()
     return render(request, 'gestorProductos/medicamentos.html', {'medicamento': medicamento})
 
 def antiparasitarios(request):
-    antiparasitario = Antiparasitario.objects.all().order_by('-id')
+    antiparasitario = Antiparasitario.objects.all().order_by()
     return render(request, 'gestorProductos/antiparasitario.html', {'antiparasitario': antiparasitario})
 
 
 def shampoos(request):
-    shampoo = Shampoo.objects.all().order_by('-id')
+    shampoo = Shampoo.objects.all().order_by()
     return render(request, 'gestorProductos/shampoo.html', {'shampoo': shampoo})
 
 def camas(request):
-    cama = Cama.objects.all().order_by('-id')
+    cama = Cama.objects.all().order_by()
     return render(request, 'gestorProductos/camas.html', {'cama': cama})
 
 def collares(request):
-    collar = Collar.objects.all().order_by('-id')
+    collar = Collar.objects.all().order_by()
     return render(request, 'gestorProductos/collares.html', {'collar': collar})
 
 def juguetes(request):
-    juguete = Juguete.objects.all().order_by('-id')
+    juguete = Juguete.objects.all().order_by()
     return render(request, 'gestorProductos/juguetes.html', {'juguete': juguete})
 
 # ===========================
@@ -1284,6 +1290,117 @@ def eliminar_carrito(request, tipo, producto_id):
         messages.error(request, "Producto no encontrado en el carrito.")
 
     return redirect("ver_carrito")
+
+
+# ===========================
+# CHECKOUT Y PROCESO DE COMPRA
+# ===========================
+
+@login_required
+def procesar_checkout(request):
+    """
+    Procesa el formulario de checkout y simula el proceso de pago.
+    En una implementación real, aquí se integraría con una pasarela de pago.
+    """
+    carrito = request.session.get("carrito", {})
+    
+    # Validar que el carrito no esté vacío
+    if not carrito:
+        messages.error(request, "Tu carrito está vacío. Agrega productos antes de continuar.")
+        return redirect("ver_carrito")
+    
+    if request.method == "POST":
+        form = CheckoutForm(request.POST)
+        
+        if form.is_valid():
+            # Obtener datos del formulario
+            datos_cliente = form.cleaned_data
+            
+            # Calcular total
+            total = sum(item["subtotal"] for item in carrito.values())
+            
+            # En una implementación real, aquí se procesaría el pago con la pasarela
+            # Por ahora, simulamos un proceso exitoso
+            
+            # Guardar información de la compra en la sesión para la página de confirmación
+            request.session["compra_datos"] = {
+                "nombre_completo": datos_cliente["nombre_completo"],
+                "email": datos_cliente["email"],
+                "telefono": datos_cliente["telefono"],
+                "direccion": datos_cliente["direccion"],
+                "ciudad": datos_cliente["ciudad"],
+                "codigo_postal": datos_cliente["codigo_postal"],
+                "metodo_pago": datos_cliente["metodo_pago"],
+                "total": float(total),
+                "carrito": carrito.copy(),  # Copia del carrito
+            }
+            
+            # Generar número de orden simulado
+            import random
+            import string
+            numero_orden = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+            request.session["compra_datos"]["numero_orden"] = numero_orden
+            
+            # Vaciar el carrito después de procesar
+            del request.session["carrito"]
+            request.session.modified = True
+            
+            messages.success(request, f"¡Compra procesada exitosamente! Número de orden: {numero_orden}")
+            return redirect("confirmar_compra")
+        else:
+            # Si hay errores en el formulario, mostrar mensajes
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    else:
+        # Si es GET, crear formulario con datos del usuario si está autenticado
+        initial_data = {}
+        if request.user.is_authenticated:
+            initial_data = {
+                "nombre_completo": f"{request.user.first_name} {request.user.last_name}".strip() or request.user.username,
+                "email": request.user.email or "",
+            }
+        form = CheckoutForm(initial=initial_data)
+    
+    # Calcular total para mostrar en el template
+    total = sum(item["subtotal"] for item in carrito.values())
+    
+    return render(request, "gestorProductos/checkout.html", {
+        "form": form,
+        "carrito": carrito,
+        "total": total,
+    })
+
+
+@login_required
+def confirmar_compra(request):
+    """
+    Muestra la página de confirmación de compra con los detalles de la orden.
+    """
+    compra_datos = request.session.get("compra_datos")
+    
+    if not compra_datos:
+        messages.warning(request, "No se encontró información de compra. Redirigiendo al inicio.")
+        return redirect("vet_inicio")
+    
+    # Pasar los datos a la plantilla
+    context = {
+        "numero_orden": compra_datos.get("numero_orden", "N/A"),
+        "nombre_completo": compra_datos.get("nombre_completo", ""),
+        "email": compra_datos.get("email", ""),
+        "telefono": compra_datos.get("telefono", ""),
+        "direccion": compra_datos.get("direccion", ""),
+        "ciudad": compra_datos.get("ciudad", ""),
+        "codigo_postal": compra_datos.get("codigo_postal", ""),
+        "metodo_pago": compra_datos.get("metodo_pago", ""),
+        "total": compra_datos.get("total", 0),
+        "carrito": compra_datos.get("carrito", {}),
+    }
+    
+    # Limpiar datos de la sesión después de mostrar (opcional)
+    # del request.session["compra_datos"]
+    
+    return render(request, "gestorProductos/confirmar_compra.html", context)
 
 
 # ===========================

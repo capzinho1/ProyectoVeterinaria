@@ -113,7 +113,7 @@
 
         /* Modal */
         .modal-header {
-            background-color: #87c1f5;
+            background-color: #1ed1da;
             color: white;
         }
 
@@ -125,7 +125,7 @@
         }
 
         .quantity-control button {
-            background-color: #87c1f5;
+            background-color: #1ed1da;
             border: none;
             color: white;
             width: 35px;
@@ -265,7 +265,7 @@
     <div class="container my-5">
         <h1 class="text-center mb-4">Alimentos para Gatos Cachorros</h1>
         <div class="row">
-            {% for producto in gcaproductos %}
+            {% for producto in agcproductos %}
             <div class="col-md-4 mb-4 d-flex justify-content-center">
                 <div class="card">
                     <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
@@ -293,7 +293,7 @@
         </div>
 
         <div class="d-flex justify-content-start mt-4">
-            <a href="/vet_inicio/" class="btn-volver">
+            <a href="javascript:history.back()" class="btn-volver">
                 <i class="bi bi-arrow-left"></i> Volver
             </a>
         </div>

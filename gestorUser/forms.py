@@ -291,7 +291,7 @@ class MascotaForm(forms.ModelForm):
     class Meta:
         model = Mascota
         fields = [
-            'nombre', 'tipo_mascota', 'raza', 'sexo', 'fecha_nacimiento',
+            'nombre', 'tipo_mascota', 'raza', 'sexo', 'edad',
             'color', 'peso', 'observaciones'
         ]
         widgets = {
@@ -299,7 +299,7 @@ class MascotaForm(forms.ModelForm):
             'tipo_mascota': forms.Select(attrs={'class': 'form-select'}),
             'raza': forms.TextInput(attrs={'class': 'form-control'}),
             'sexo': forms.Select(attrs={'class': 'form-select'}),
-            'fecha_nacimiento': DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'edad': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 2 años, 6 meses'}),
             'color': forms.TextInput(attrs={'class': 'form-control'}),
             'peso': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),

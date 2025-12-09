@@ -1,0 +1,393 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra • Veterinaria</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    
+    <style>
+        :root{
+            --accent:#20bec6;
+            --accent2:#0aa1af;
+            --light:#f6fafa;
+            --card:#ffffff;
+            --text:#1c2b2e;
+            --muted:#889b9d;
+            --danger:#d9534f;
+            --success:#28a745;
+        }
+
+        body{
+            background: linear-gradient(135deg, #e7f9fb 0%, #fbfefd 100%);
+            font-family: "Poppins", Arial, sans-serif;
+            padding: 30px 16px;
+        }
+
+        .checkout-wrap{
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .checkout-card{
+            background: var(--card);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.06);
+            border: 1px solid #e7eff0;
+            margin-bottom: 20px;
+        }
+
+        .page-title{
+            font-weight: 700;
+            font-size: 2rem;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .section-title{
+            font-weight: 600;
+            font-size: 1.3rem;
+            color: var(--text);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .form-label{
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .form-control:focus, .form-select:focus{
+            border-color: var(--accent);
+            box-shadow: 0 0 0 0.2rem rgba(32, 189, 198, 0.25);
+        }
+
+        .btn-checkout{
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .btn-checkout:hover{
+            background: var(--accent2);
+            color: white;
+        }
+
+        .summary-box{
+            background: linear-gradient(90deg, rgba(32,189,198,0.12), rgba(12,169,112,0.12));
+            border-radius: 14px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-item{
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .summary-total{
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid var(--accent);
+        }
+
+        .product-item{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e7eff0;
+        }
+
+        .product-item:last-child{
+            border-bottom: none;
+        }
+
+        .tarjeta-fields{
+            display: none;
+        }
+
+        .tarjeta-fields.show{
+            display: block;
+        }
+
+        .btn-volver{
+            background: var(--muted);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+        }
+
+        .btn-volver:hover{
+            background: #748b8d;
+            color: white;
+        }
+
+        @media (max-width: 767px){
+            .page-title{ font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    
+<div class="checkout-wrap">
+    <!-- ENCABEZADO -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">🛒 Finalizar Compra</h1>
+            <p class="text-muted">Completa los datos para procesar tu pedido</p>
+        </div>
+        <a href="/productos/carrito/" class="btn btn-volver">
+            <i class="bi bi-arrow-left"></i> Volver al Carrito
+        </a>
+    </div>
+
+    <!-- MENSAJES -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" action="/productos/checkout/">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+            <div class="col-lg-8">
+                <div class="checkout-card">
+                    <h3 class="section-title">
+                        <i class="bi bi-person-circle"></i> Datos del Cliente
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">{{ form.nombre_completo.label }}</label>
+                            {{ form.nombre_completo }}
+                            {% if form.nombre_completo.errors %}
+                                <div class="text-danger small">{{ form.nombre_completo.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.telefono.label }}</label>
+                            {{ form.telefono }}
+                            {% if form.telefono.errors %}
+                                <div class="text-danger small">{{ form.telefono.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkout-card">
+                    <h3 class="section-title">
+                        <i class="bi bi-geo-alt"></i> Dirección de Envío
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">{{ form.direccion.label }}</label>
+                            {{ form.direccion }}
+                            {% if form.direccion.errors %}
+                                <div class="text-danger small">{{ form.direccion.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-8 mb-3">
+                            <label class="form-label">{{ form.ciudad.label }}</label>
+                            {{ form.ciudad }}
+                            {% if form.ciudad.errors %}
+                                <div class="text-danger small">{{ form.ciudad.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.codigo_postal.label }}</label>
+                            {{ form.codigo_postal }}
+                            {% if form.codigo_postal.errors %}
+                                <div class="text-danger small">{{ form.codigo_postal.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkout-card">
+                    <h3 class="section-title">
+                        <i class="bi bi-credit-card"></i> Método de Pago
+                    </h3>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.metodo_pago.label }}</label>
+                        {{ form.metodo_pago }}
+                        {% if form.metodo_pago.errors %}
+                            <div class="text-danger small">{{ form.metodo_pago.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Campos de tarjeta (se muestran solo si se selecciona tarjeta) -->
+                    <div class="tarjeta-fields" id="tarjetaFields">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">{{ form.numero_tarjeta.label }}</label>
+                                {{ form.numero_tarjeta }}
+                                {% if form.numero_tarjeta.errors %}
+                                    <div class="text-danger small">{{ form.numero_tarjeta.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.fecha_vencimiento.label }}</label>
+                                {{ form.fecha_vencimiento }}
+                                {% if form.fecha_vencimiento.errors %}
+                                    <div class="text-danger small">{{ form.fecha_vencimiento.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.cvv.label }}</label>
+                                {{ form.cvv }}
+                                {% if form.cvv.errors %}
+                                    <div class="text-danger small">{{ form.cvv.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.notas.label }}</label>
+                        {{ form.notas }}
+                        {% if form.notas.errors %}
+                            <div class="text-danger small">{{ form.notas.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- COLUMNA DERECHA: RESUMEN -->
+            <div class="col-lg-4">
+                <div class="checkout-card">
+                    <h3 class="section-title">
+                        <i class="bi bi-receipt"></i> Resumen del Pedido
+                    </h3>
+                    
+                    <!-- Lista de productos -->
+                    <div class="mb-3">
+                        {% for key, item in carrito.items %}
+                        <div class="product-item">
+                            <div>
+                                <strong>{{ item.nombre }}</strong>
+                                <br>
+                                <small class="text-muted">Cantidad: {{ item.cantidad }}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong>${{ item.subtotal|floatformat:2 }}</strong>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="summary-box">
+                        <div class="summary-item">
+                            <span>Subtotal:</span>
+                            <span>${{ total|floatformat:2 }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Envío:</span>
+                            <span class="text-success">Gratis</span>
+                        </div>
+                        <div class="summary-total">
+                            <span>Total:</span>
+                            <span>${{ total|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-checkout w-100 mt-4">
+                        <i class="bi bi-lock-fill"></i> Confirmar y Pagar
+                    </button>
+                    
+                    <p class="text-center text-muted small mt-3">
+                        <i class="bi bi-shield-check"></i> Tu información está protegida
+                    </p>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const metodoPago = document.querySelector('#id_metodo_pago');
+    const tarjetaFields = document.getElementById('tarjetaFields');
+    
+    function toggleTarjetaFields() {
+        if (metodoPago.value === 'tarjeta') {
+            tarjetaFields.classList.add('show');
+        } else {
+            tarjetaFields.classList.remove('show');
+        }
+    }
+    
+    // Mostrar/ocultar campos según método de pago
+    if (metodoPago) {
+        toggleTarjetaFields();
+        metodoPago.addEventListener('change', toggleTarjetaFields);
+    }
+    
+    // Formatear número de tarjeta
+    const numeroTarjeta = document.querySelector('#id_numero_tarjeta');
+    if (numeroTarjeta) {
+        numeroTarjeta.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '');
+            let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formatted;
+        });
+    }
+    
+    // Formatear fecha de vencimiento
+    const fechaVencimiento = document.querySelector('#id_fecha_vencimiento');
+    if (fechaVencimiento) {
+        fechaVencimiento.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+    }
+});
+</script>
+
+</body>
+</html>
+

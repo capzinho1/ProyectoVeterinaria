@@ -23,6 +23,7 @@ de que el usuario sea veterinario mediante la función helper.
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q, Sum
@@ -294,7 +295,8 @@ def vet_paciente_editar(request, paciente_id):
 @login_required
 def vet_fichas_clinicas(request):
     """
-    Vista para listar todas las fichas clínicas del sistema.
+    Vista para listar todas las mascotas con sus fichas clínicas.
+    Muestra todas las mascotas registradas, indicando si tienen ficha clínica o no.
     Incluye funcionalidad de búsqueda por nombre de mascota.
     """
     # Verificar permisos de veterinario
@@ -302,26 +304,35 @@ def vet_fichas_clinicas(request):
     if check:
         return check
     
-    # Obtener todas las fichas clínicas con optimización de consultas
-    # select_related trae las relaciones mascota y veterinario en la misma consulta SQL
-    # Ordenar por fecha de actualización descendente (más recientes primero)
-    fichas = FichaClinica.objects.select_related(
-        'mascota',      # Traer datos de la mascota
-        'veterinario'   # Traer datos del veterinario
-    ).order_by('-fecha_actualizacion')
+    # Obtener todas las mascotas activas con optimización de consultas
+    # prefetch_related trae las fichas clínicas relacionadas
+    mascotas = Mascota.objects.filter(activa=True).select_related(
+        'propietario'  # Traer datos del propietario
+    ).prefetch_related(
+        'fichas_clinicas'  # Traer fichas clínicas relacionadas
+    ).order_by('nombre')
     
     # Obtener término de búsqueda desde los parámetros GET de la URL
     search = request.GET.get('search', '')
     
-    # Si hay búsqueda, filtrar fichas por nombre de mascota
+    # Si hay búsqueda, filtrar mascotas por nombre
     if search:
-        # mascota__nombre__icontains: busca en el nombre de la mascota relacionada
-        # icontains hace búsqueda case-insensitive (no diferencia mayúsculas/minúsculas)
-        fichas = fichas.filter(mascota__nombre__icontains=search)
+        mascotas = mascotas.filter(nombre__icontains=search)
     
-    # Renderizar template con la lista de fichas
+    # Preparar datos para el template: para cada mascota, obtener su ficha clínica más reciente
+    mascotas_con_ficha = []
+    for mascota in mascotas:
+        # Obtener la ficha clínica más reciente de la mascota (si existe)
+        ficha = mascota.fichas_clinicas.first()  # first() obtiene la más reciente por el ordering del modelo
+        mascotas_con_ficha.append({
+            'mascota': mascota,
+            'ficha': ficha,
+            'tiene_ficha': ficha is not None
+        })
+    
+    # Renderizar template con la lista de mascotas
     return render(request, 'gestorUser/veterinario/fichas_lista.html', {
-        'fichas': fichas,  # Lista de fichas (filtradas si hay búsqueda)
+        'mascotas_con_ficha': mascotas_con_ficha,  # Lista de mascotas con sus fichas
         'search': search   # Término de búsqueda para mantenerlo en el input
     })
 
@@ -460,52 +471,113 @@ def vet_ficha_editar(request, ficha_id):
 @login_required
 def vet_agenda(request):
     """
-    Vista de agenda diaria del veterinario.
-    Muestra las citas del día seleccionado y las citas próximas.
+    Vista de agenda con calendario completo del veterinario.
+    Muestra todas las citas en un calendario grande tipo Google Calendar.
     """
     # Verificar permisos de veterinario
     check = verificar_veterinario(request)
     if check:
         return check
     
-    # ========== OBTENER FECHA SELECCIONADA ==========
-    # Obtener la fecha desde los parámetros GET de la URL
-    # Si no se proporciona, usar la fecha actual en formato ISO (YYYY-MM-DD)
-    fecha = request.GET.get('fecha', timezone.now().date().isoformat())
+    # Renderizar template con el calendario
+    return render(request, 'gestorUser/veterinario/agenda.html', {})
+
+
+@login_required
+def vet_agenda_api(request):
+    """
+    API para obtener citas en formato JSON para FullCalendar.
+    Devuelve todas las citas sin filtros, solo filtradas por rango de fechas para el calendario.
+    """
+    # Verificar permisos de veterinario
+    check = verificar_veterinario(request)
+    if check:
+        return check
     
-    # Intentar convertir el string de fecha a objeto date
-    try:
-        # Convertir string "YYYY-MM-DD" a objeto date
-        fecha_obj = timezone.datetime.strptime(fecha, '%Y-%m-%d').date()
-    except:
-        # Si hay error en el formato, usar la fecha actual como fallback
-        fecha_obj = timezone.now().date()
+    # Obtener parámetros de rango de fechas (necesario para el calendario)
+    start = request.GET.get('start')
+    end = request.GET.get('end')
     
-    # ========== CITAS DEL DÍA SELECCIONADO ==========
-    # Obtener todas las citas médicas para la fecha seleccionada
-    # Ordenar por hora (más temprano primero)
-    citas_dia = CitaMedica.objects.filter(fecha=fecha_obj).order_by('hora')
+    # Obtener todas las citas (sin filtros adicionales)
+    citas = CitaMedica.objects.all().order_by('fecha', 'hora')
     
-    # ========== CITAS PRÓXIMAS (PRÓXIMOS 7 DÍAS) ==========
-    # Calcular la fecha límite (7 días después del día seleccionado)
-    fecha_futuro = fecha_obj + timezone.timedelta(days=7)
+    # Aplicar solo filtro de rango de fechas para optimizar
+    if start:
+        try:
+            start_date = timezone.datetime.strptime(start, '%Y-%m-%d').date()
+            citas = citas.filter(fecha__gte=start_date)
+        except:
+            pass
     
-    # Obtener citas entre el día seleccionado y 7 días después
-    # fecha__gte: fecha mayor o igual a fecha_obj
-    # fecha__lte: fecha menor o igual a fecha_futuro
-    # exclude(fecha=fecha_obj): excluir las citas del día actual (ya están en citas_dia)
-    # Ordenar por fecha y hora, limitar a 10 resultados
-    citas_proximas = CitaMedica.objects.filter(
-        fecha__gte=fecha_obj,      # Desde el día seleccionado
-        fecha__lte=fecha_futuro    # Hasta 7 días después
-    ).exclude(fecha=fecha_obj).order_by('fecha', 'hora')[:10]
+    if end:
+        try:
+            end_date = timezone.datetime.strptime(end, '%Y-%m-%d').date()
+            citas = citas.filter(fecha__lte=end_date)
+        except:
+            pass
     
-    # Renderizar template con la agenda
-    return render(request, 'gestorUser/veterinario/agenda.html', {
-        'fecha': fecha_obj,        # Fecha del día seleccionado
-        'citas_dia': citas_dia,    # Citas del día seleccionado
-        'citas_proximas': citas_proximas  # Próximas citas (siguientes 7 días)
-    })
+    # Convertir a formato FullCalendar
+    eventos = []
+    # Colores tipo Google Calendar (suaves y variados)
+    colores = ['#4285f4', '#34a853', '#fbbc04', '#ea4335', '#9c27b0', '#00bcd4', '#ff9800', '#795548']
+    
+    for idx, cita in enumerate(citas):
+        # Determinar color según si la cita es pasada o futura
+        cita_datetime = timezone.datetime.combine(cita.fecha, cita.hora)
+        es_pasada = timezone.make_aware(cita_datetime) < timezone.now()
+        
+        # Usar color diferente según el índice para variedad visual
+        color_index = idx % len(colores)
+        color = '#757575' if es_pasada else colores[color_index]  # Gris para pasadas, colores variados para futuras
+        
+        # Título más corto para mejor visualización
+        hora_str = cita.hora.strftime('%H:%M')
+        titulo = f"{hora_str} - {cita.mascota}"
+        
+        eventos.append({
+            'id': cita.id,
+            'title': titulo,
+            'start': f"{cita.fecha}T{cita.hora}",
+            'color': color,
+            'textColor': 'white',
+            'extendedProps': {
+                'mascota': cita.mascota,
+                'tipo_mascota': cita.get_tipo_mascota_display(),
+                'propietario': cita.user.username,
+                'motivo': cita.motivo or '',
+                'es_pasada': es_pasada,
+                'hora': hora_str,
+            }
+        })
+    
+    return JsonResponse(eventos, safe=False)
+
+
+@login_required
+def vet_cita_eliminar(request, cita_id):
+    """
+    Vista para eliminar/cancelar una cita médica.
+    """
+    # Verificar permisos de veterinario
+    check = verificar_veterinario(request)
+    if check:
+        return check
+    
+    cita = get_object_or_404(CitaMedica, id=cita_id)
+    
+    if request.method == 'POST':
+        mascota_nombre = cita.mascota
+        cita.delete()
+        messages.success(request, f"Cita de {mascota_nombre} eliminada correctamente.")
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Si es una petición AJAX, devolver JSON
+            return JsonResponse({'success': True, 'message': f"Cita eliminada correctamente."})
+        
+        return redirect('vet_agenda')
+    
+    # Si no es POST, redirigir
+    return redirect('vet_agenda')
 
 
 @login_required
@@ -578,11 +650,94 @@ def vet_consultas(request):
     elif estado == 'completadas':
         consultas = consultas.filter(estado='completada')
     
+    # Crear formulario para el modal
+    form = ConsultaForm()
+    
     return render(request, 'gestorUser/veterinario/consultas_lista.html', {
         'consultas': consultas,
         'estado': estado,
-        'mascota_filtro': mascota_id  # Para mantener el filtro en el template
+        'mascota_filtro': mascota_id,  # Para mantener el filtro en el template
+        'form': form
     })
+
+
+@login_required
+def vet_consulta_crear_ajax(request):
+    """Vista AJAX para crear consulta desde modal"""
+    check = verificar_veterinario(request)
+    if check:
+        return check
+    
+    if request.method == 'POST':
+        form = ConsultaForm(request.POST)
+        if form.is_valid():
+            consulta = form.save(commit=False)
+            consulta.veterinario = request.user
+            consulta.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Consulta creada correctamente.',
+                'consulta_id': consulta.id
+            })
+        else:
+            # Devolver errores del formulario
+            errors = {}
+            for field, error_list in form.errors.items():
+                errors[field] = error_list[0]  # Solo el primer error por campo
+            return JsonResponse({
+                'success': False,
+                'errors': errors
+            }, status=400)
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+
+
+@login_required
+def vet_mascota_crear_ajax(request):
+    """Vista AJAX para crear mascota rápidamente desde modal"""
+    check = verificar_veterinario(request)
+    if check:
+        return check
+    
+    if request.method == 'POST':
+        form = MascotaForm(request.POST)
+        if form.is_valid():
+            mascota = form.save(commit=False)
+            
+            # Manejar propietario
+            propietario_nombre = form.cleaned_data.get('propietario_nombre', '').strip()
+            if propietario_nombre:
+                # Buscar o crear usuario propietario
+                propietario, created = User.objects.get_or_create(
+                    username=propietario_nombre,
+                    defaults={'email': ''}
+                )
+                mascota.propietario = propietario
+            
+            mascota.activa = True
+            mascota.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Mascota creada correctamente.',
+                'mascota': {
+                    'id': mascota.id,
+                    'nombre': mascota.nombre,
+                    'tipo_mascota': mascota.get_tipo_mascota_display()
+                }
+            })
+        else:
+            # Devolver errores del formulario
+            errors = {}
+            for field, error_list in form.errors.items():
+                errors[field] = error_list[0]  # Solo el primer error por campo
+            return JsonResponse({
+                'success': False,
+                'errors': errors
+            }, status=400)
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
 
 
 @login_required

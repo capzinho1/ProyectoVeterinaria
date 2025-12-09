@@ -10,8 +10,9 @@ from gestorUser.views import (
     # Vistas del sistema de veterinario
     vet_perfil, vet_pacientes, vet_paciente_detalle, vet_paciente_crear, vet_paciente_editar,
     vet_fichas_clinicas, vet_ficha_detalle, vet_ficha_crear, vet_ficha_editar,
-    vet_agenda, vet_citas, vet_cita_detalle,
-    vet_consultas, vet_consulta_detalle, vet_consulta_crear, vet_consulta_editar, vet_consulta_completar,
+    vet_agenda, vet_agenda_api, vet_citas, vet_cita_detalle, vet_cita_eliminar,
+    vet_consultas, vet_consulta_detalle, vet_consulta_crear, vet_consulta_crear_ajax, vet_consulta_editar, vet_consulta_completar,
+    vet_mascota_crear_ajax,
     vet_recetas, vet_receta_detalle, vet_receta_crear, vet_prescripcion_agregar,
     vet_vacunas, vet_vacuna_registrar,
     vet_tratamientos, vet_tratamiento_registrar,
@@ -50,6 +51,7 @@ urlpatterns = [
     path('vet/pacientes/', vet_pacientes, name='vet_pacientes'),
     path('vet/paciente/<int:paciente_id>/', vet_paciente_detalle, name='vet_paciente_detalle'),
     path('vet/paciente/crear/', vet_paciente_crear, name='vet_paciente_crear'),
+    path('vet/paciente/crear/ajax/', vet_mascota_crear_ajax, name='vet_mascota_crear_ajax'),
     path('vet/paciente/<int:paciente_id>/editar/', vet_paciente_editar, name='vet_paciente_editar'),
     
     # Fichas Clínicas
@@ -60,13 +62,16 @@ urlpatterns = [
     
     # Agenda y Citas
     path('vet/agenda/', vet_agenda, name='vet_agenda'),
+    path('vet/agenda/api/', vet_agenda_api, name='vet_agenda_api'),
     path('vet/citas/', vet_citas, name='vet_citas'),
     path('vet/cita/<int:cita_id>/', vet_cita_detalle, name='vet_cita_detalle'),
+    path('vet/cita/<int:cita_id>/eliminar/', vet_cita_eliminar, name='vet_cita_eliminar'),
     
     # Consultas Médicas
     path('vet/consultas/', vet_consultas, name='vet_consultas'),
     path('vet/consulta/<int:consulta_id>/', vet_consulta_detalle, name='vet_consulta_detalle'),
-    path('vet/consulta/crear/', vet_consulta_crear, name='vet_consulta_crear'),
+    path('vet/consulta/crear/', vet_consulta_crear_ajax, name='vet_consulta_crear_ajax'),
+    path('vet/consulta/crear/old/', vet_consulta_crear, name='vet_consulta_crear'),
     path('vet/consulta/crear/<int:paciente_id>/', vet_consulta_crear, name='vet_consulta_crear_paciente'),
     path('vet/consulta/crear/cita/<int:cita_id>/', vet_consulta_crear, name='vet_consulta_crear_cita'),
     path('vet/consulta/<int:consulta_id>/editar/', vet_consulta_editar, name='vet_consulta_editar'),

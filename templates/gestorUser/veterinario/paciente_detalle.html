@@ -5,9 +5,6 @@
 {% block contenido %}
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="bi bi-heart"></i> {{ paciente.nombre }}</h2>
-            <a href="{% url 'vet_paciente_editar' paciente.id %}" class="btn btn-warning">
-                <i class="bi bi-pencil"></i> Editar
-            </a>
         </div>
 
         <div class="row">
@@ -23,7 +20,7 @@
                         <p><strong>Sexo:</strong> {{ paciente.get_sexo_display|default:"No especificado" }}</p>
                         <p><strong>Color:</strong> {{ paciente.color|default:"No especificado" }}</p>
                         <p><strong>Peso:</strong> {{ paciente.peso|default:"No especificado" }} kg</p>
-                        <p><strong>Fecha Nacimiento:</strong> {{ paciente.fecha_nacimiento|date:"d/m/Y"|default:"No especificada" }}</p>
+                        <p><strong>Edad:</strong> {{ paciente.edad|default:"No especificada" }}</p>
                         <p><strong>Propietario:</strong> {{ paciente.propietario.username }}</p>
                         <p><strong>Estado:</strong> 
                             <span class="badge bg-{% if paciente.activa %}success{% else %}secondary{% endif %}">
@@ -44,15 +41,6 @@
                         <h5 class="mb-0">Acciones</h5>
                     </div>
                     <div class="card-body">
-                        {% if ficha_clinica %}
-                            <a href="{% url 'vet_ficha_detalle' ficha_clinica.id %}" class="btn btn-primary w-100 mb-2">
-                                <i class="bi bi-file-medical"></i> Ver Ficha Clínica
-                            </a>
-                        {% else %}
-                            <a href="{% url 'vet_ficha_crear' paciente.id %}" class="btn btn-primary w-100 mb-2">
-                                <i class="bi bi-file-medical"></i> Crear Ficha Clínica
-                            </a>
-                        {% endif %}
                         <a href="{% url 'vet_consulta_crear_paciente' paciente.id %}" class="btn btn-success w-100">
                             <i class="bi bi-clipboard-plus"></i> Nueva Consulta
                         </a>
@@ -60,47 +48,8 @@
                 </div>
             </div>
 
-            <!-- Ficha Clínica y Historial -->
+            <!-- Historial -->
             <div class="col-md-8">
-                <!-- Ficha Clínica -->
-                {% if ficha_clinica %}
-                <div class="card">
-                    <div class="card-header bg-success text-white d-flex justify-content-between">
-                        <h5 class="mb-0">Ficha Clínica</h5>
-                        <a href="{% url 'vet_ficha_editar' ficha_clinica.id %}" class="btn btn-sm btn-light">
-                            <i class="bi bi-pencil"></i> Editar
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        {% if ficha_clinica.historial_medico %}
-                        <p><strong>Historial Médico:</strong></p>
-                        <p>{{ ficha_clinica.historial_medico }}</p>
-                        {% endif %}
-                        {% if ficha_clinica.alergias %}
-                        <p><strong>Alergias:</strong></p>
-                        <p class="text-danger">{{ ficha_clinica.alergias }}</p>
-                        {% endif %}
-                        {% if ficha_clinica.medicamentos_permanentes %}
-                        <p><strong>Medicamentos Permanentes:</strong></p>
-                        <p>{{ ficha_clinica.medicamentos_permanentes }}</p>
-                        {% endif %}
-                        {% if ficha_clinica.notas_generales %}
-                        <p><strong>Notas Generales:</strong></p>
-                        <p>{{ ficha_clinica.notas_generales }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-                {% else %}
-                <div class="card">
-                    <div class="card-body text-center">
-                        <p class="text-muted">No hay ficha clínica registrada</p>
-                        <a href="{% url 'vet_ficha_crear' paciente.id %}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Crear Ficha Clínica
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-
                 <!-- Consultas Recientes -->
                 <div class="card">
                     <div class="card-header bg-primary text-white">

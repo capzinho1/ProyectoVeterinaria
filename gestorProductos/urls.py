@@ -5,6 +5,7 @@ from .views import (
     alimentoGatoAData, alimentoGatoCData, Snack_gato, Snack_Perro,
     medicamentos, shampoos, camas, collares, juguetes,
     ver_carrito, agregar_carrito, actualizar_carrito, eliminar_carrito,
+    procesar_checkout, confirmar_compra,
     api_perros_adulto, api_perros_cachorro, api_perros_senior, api_perros_snacks,
     api_gatos_adulto, api_gatos_cachorro, api_gatos_snacks,
     api_antiparasitario, api_shampoo, api_medicamento, api_collares, api_camas, api_juguetes,
@@ -107,6 +108,10 @@ urlpatterns = [
     path('carrito/agregar/<str:tipo>/<int:producto_id>/', agregar_carrito, name='agregar_carrito'),
     path('carrito/actualizar/', actualizar_carrito, name='actualizar_carrito'),
     path('carrito/eliminar/<str:tipo>/<int:producto_id>/', eliminar_carrito, name='eliminar_carrito'),
+    
+    # Checkout views
+    path('checkout/', procesar_checkout, name='procesar_checkout'),
+    path('confirmar-compra/', confirmar_compra, name='confirmar_compra'),
 
     # Edit and delete product views
     path('editar/<int:id>/', editarProducto, name='editarProducto'),

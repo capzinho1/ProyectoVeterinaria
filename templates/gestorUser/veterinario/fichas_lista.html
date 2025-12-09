@@ -21,35 +21,63 @@
         </div>
     </div>
 
-    <!-- Lista de Fichas -->
+    <!-- Lista de Mascotas con Fichas Clínicas -->
     <div class="card">
         <div class="card-body">
-            {% if fichas %}
+            {% if mascotas_con_ficha %}
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
                                 <th>Mascota</th>
+                                <th>Tipo</th>
+                                <th>Raza</th>
+                                <th>Edad</th>
                                 <th>Propietario</th>
-                                <th>Veterinario</th>
+                                <th>Estado Ficha</th>
                                 <th>Última Actualización</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for ficha in fichas %}
+                            {% for item in mascotas_con_ficha %}
                             <tr>
-                                <td><strong>{{ ficha.mascota.nombre }}</strong></td>
-                                <td>{{ ficha.mascota.propietario.username }}</td>
-                                <td>{{ ficha.veterinario.username|default:"-" }}</td>
-                                <td>{{ ficha.fecha_actualizacion|date:"d/m/Y H:i" }}</td>
+                                <td><strong>{{ item.mascota.nombre }}</strong></td>
+                                <td>{{ item.mascota.get_tipo_mascota_display }}</td>
+                                <td>{{ item.mascota.raza|default:"-" }}</td>
+                                <td>{{ item.mascota.edad|default:"-" }}</td>
+                                <td>{{ item.mascota.propietario.username }}</td>
                                 <td>
-                                    <a href="{% url 'vet_ficha_detalle' ficha.id %}" class="btn btn-sm btn-info">
-                                        <i class="bi bi-eye"></i> Ver
-                                    </a>
-                                    <a href="{% url 'vet_ficha_editar' ficha.id %}" class="btn btn-sm btn-warning">
-                                        <i class="bi bi-pencil"></i> Editar
-                                    </a>
+                                    {% if item.tiene_ficha %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Con Ficha
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-exclamation-circle"></i> Sin Ficha
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.ficha %}
+                                        {{ item.ficha.fecha_actualizacion|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.tiene_ficha %}
+                                        <a href="{% url 'vet_ficha_detalle' item.ficha.id %}" class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i> Ver Ficha
+                                        </a>
+                                        <a href="{% url 'vet_ficha_editar' item.ficha.id %}" class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'vet_ficha_crear' item.mascota.id %}" class="btn btn-sm btn-success">
+                                            <i class="bi bi-plus-circle"></i> Crear Ficha
+                                        </a>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -58,7 +86,7 @@
                 </div>
             {% else %}
                 <div class="alert alert-info text-center">
-                    <i class="bi bi-info-circle"></i> No se encontraron fichas clínicas.
+                    <i class="bi bi-info-circle"></i> No se encontraron mascotas registradas.
                 </div>
             {% endif %}
         </div>

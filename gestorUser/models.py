@@ -183,8 +183,8 @@ class Mascota(models.Model):
         verbose_name='Sexo'
     )
     
-    # Fecha de nacimiento para calcular la edad (opcional)
-    fecha_nacimiento = models.DateField(blank=True, null=True, verbose_name='Fecha de Nacimiento')
+    # Edad de la mascota (opcional)
+    edad = models.CharField(max_length=50, blank=True, null=True, verbose_name='Edad', help_text='Ej: 2 años, 6 meses, etc.')
     
     # Color del pelaje (opcional)
     color = models.CharField(max_length=50, blank=True, null=True, verbose_name='Color')

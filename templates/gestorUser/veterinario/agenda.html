@@ -1,106 +1,610 @@
 {% extends 'gestorUser/veterinario/base_veterinario.html' %}
 
-{% block titulo %}Agenda - Veterinario{% endblock %}
+{% block titulo %}Agenda - Calendario de Citas{% endblock %}
 
 {% block extra_css %}
     <style>
-        .cita-item { border-left: 4px solid #1ed1da; padding-left: 1rem; margin-bottom: 1rem; }
+        /* Contenedor principal del calendario */
+        #calendar {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05);
+            padding: 2rem;
+            min-height: 750px;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+        
+        /* Estilo general tipo Google Calendar mejorado */
+        .fc {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        /* Toolbar mejorado */
+        .fc-toolbar {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e8eaf6;
+        }
+        
+        .fc-toolbar-title {
+            font-size: 2rem;
+            font-weight: 500;
+            background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+        
+        /* Botones mejorados */
+        .fc-button {
+            background: linear-gradient(135deg, #1ed1da 0%, #1ed1da 100%);
+            border: 2px solid #d0d0d0;
+            color: #424242;
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            text-transform: none;
+            font-size: 0.9rem;
+        }
+        
+        .fc-button:hover {
+            background: linear-gradient(135deg, #e8e8e8 0%, #dadada 100%);
+            border-color: #1ed1da;
+            color: #1ed1da;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(30, 209, 218, 0.2);
+        }
+        
+        .fc-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .fc-button-active {
+            background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%);
+            border-color: #1ed1da;
+            color: white;
+            box-shadow: 0 4px 12px rgba(30, 209, 218, 0.3);
+        }
+        
+        .fc-button-active:hover {
+            background: linear-gradient(135deg, #17b7c0 0%, #15a5ad 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(30, 209, 218, 0.4);
+        }
+        
+        /* Iconos de los botones (flechas, etc) */
+        .fc-icon {
+            color: inherit;
+        }
+        
+        .fc-button-primary:not(:disabled):active,
+        .fc-button-primary:not(:disabled).fc-button-active {
+            background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%);
+            border-color: #1ed1da;
+            color: white;
+        }
+        
+        /* Días del calendario */
+        .fc-daygrid-day {
+            border-color: #e8eaf6;
+            transition: background-color 0.2s ease;
+        }
+        
+        .fc-daygrid-day:hover {
+            background-color: #f5f7fa;
+        }
+        
+        .fc-daygrid-day-number {
+            color: #546e7a;
+            padding: 0.75rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+        
+        .fc-daygrid-day:hover .fc-daygrid-day-number {
+            color: #1ed1da;
+            transform: scale(1.1);
+        }
+        
+        /* Encabezado de columnas */
+        .fc-col-header-cell {
+            border-color: #e8eaf6;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .fc-col-header-cell-cushion {
+            color: #37474f;
+            font-weight: 600;
+            padding: 1rem 0.5rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Día actual destacado */
+        .fc-day-today {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+            position: relative;
+        }
+        
+        .fc-day-today::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #1ed1da 0%, #17b7c0 100%);
+        }
+        
+        .fc-day-today .fc-daygrid-day-number {
+            color: #1ed1da;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        /* Eventos mejorados */
+        .fc-event {
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 4px solid rgba(255,255,255,0.8);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .fc-event::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: rgba(255,255,255,0.5);
+        }
+        
+        .fc-event-title {
+            padding: 0;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        
+        .fc-event-time {
+            font-weight: 700;
+            margin-right: 6px;
+            opacity: 0.9;
+        }
+        
+        .fc-event:hover {
+            transform: translateX(4px) scale(1.02);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            z-index: 10;
+        }
+        
+        .fc-daygrid-event-dot {
+            display: none;
+        }
+        
+        .fc-daygrid-day-frame {
+            min-height: 120px;
+            padding: 0.5rem;
+        }
+        
+        .fc-daygrid-day-events {
+            margin-top: 0.5rem;
+        }
+        
+        /* Scrollbar personalizado */
+        .fc-scroller::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .fc-scroller::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .fc-scroller::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%);
+            border-radius: 4px;
+        }
+        
+        .fc-scroller::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #17b7c0 0%, #15a5ad 100%);
+        }
+        
+        /* Modal mejorado */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%);
+            color: white;
+            border-bottom: none;
+            padding: 1.5rem 2rem;
+        }
+        
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+        }
+        
+        .modal-header .btn-close:hover {
+            opacity: 1;
+            transform: rotate(90deg);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-title {
+            color: white;
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+        
+        .modal-body {
+            padding: 2rem;
+            color: #424242;
+            background: #fafafa;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid #e0e0e0;
+            padding: 1.5rem 2rem;
+            background: white;
+        }
+        
+        .modal-body strong {
+            color: #1ed1da;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn-google {
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-google:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        /* Título de la página */
+        h2 {
+            background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Animación de carga */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        #calendar {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Mejoras adicionales */
+        .fc-daygrid-day-top {
+            flex-direction: row;
+            justify-content: flex-start;
+        }
+        
+        .fc-more-link {
+            color: #1ed1da;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .fc-more-link:hover {
+            background-color: #e3f2fd;
+            color: #17b7c0;
+        }
     </style>
 {% endblock %}
 
 {% block contenido %}
-    <h2 class="mb-4"><i class="bi bi-calendar-check"></i> Agenda</h2>
-    
-    <!-- Filtro de Fecha -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label">Seleccionar Fecha</label>
-                    <input type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" class="form-control">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: #3c4043; font-weight: 400; font-size: 1.75rem;">
+            <i class="bi bi-calendar-check"></i> Agenda de Citas
+        </h2>
+    </div>
+
+    <!-- Calendario -->
+    <div id="calendar"></div>
+
+    <!-- Modal para Detalles de Cita -->
+    <div class="modal fade" id="citaModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-calendar-event"></i> Detalle de Cita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-search"></i> Buscar
+                <div class="modal-body" id="citaModalBody">
+                    <!-- Contenido dinámico -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-google" data-bs-dismiss="modal">Cerrar</button>
+                    <a id="btnVerDetalle" href="#" class="btn btn-primary btn-google">
+                        <i class="bi bi-eye"></i> Ver Detalle Completo
+                    </a>
+                    <button type="button" class="btn btn-danger btn-google" id="btnEliminarCita" onclick="confirmarEliminar()">
+                        <i class="bi bi-trash"></i> Eliminar
                     </button>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Citas del Día -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Citas del {{ fecha|date:"d/m/Y" }}</h5>
-                </div>
-                <div class="card-body">
-                    {% if citas_dia %}
-                        {% for cita in citas_dia %}
-                        <div class="cita-item">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="mb-1">{{ cita.hora|time:"H:i" }} - {{ cita.mascota }}</h6>
-                                    <p class="mb-1"><small>Propietario: {{ cita.user.username }}</small></p>
-                                    {% if cita.motivo %}
-                                    <p class="mb-0"><small>{{ cita.motivo|truncatechars:80 }}</small></p>
-                                    {% endif %}
-                                </div>
-                                <a href="{% url 'vet_cita_detalle' cita.id %}" class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted text-center">No hay citas programadas para este día</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Citas Próximas -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Próximas Citas (7 días)</h5>
-                </div>
-                <div class="card-body">
-                    {% if citas_proximas %}
-                        {% for cita in citas_proximas %}
-                        <div class="cita-item">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="mb-1">{{ cita.fecha|date:"d/m/Y" }} {{ cita.hora|time:"H:i" }} - {{ cita.mascota }}</h6>
-                                    <p class="mb-1"><small>Propietario: {{ cita.user.username }}</small></p>
-                                    {% if cita.motivo %}
-                                    <p class="mb-0"><small>{{ cita.motivo|truncatechars:80 }}</small></p>
-                                    {% endif %}
-                                </div>
-                                <a href="{% url 'vet_cita_detalle' cita.id %}" class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted text-center">No hay citas próximas</p>
-                    {% endif %}
-                </div>
             </div>
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center">
-                    <a href="{% url 'vet_citas' %}" class="btn btn-primary">
-                        <i class="bi bi-list-ul"></i> Ver Todas las Citas
-                    </a>
+    <!-- Modal de Confirmación -->
+    <div class="modal fade" id="confirmarModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar esta cita?</p>
+                    <p class="text-muted"><small>Esta acción no se puede deshacer.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-google" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger btn-google" id="btnConfirmarEliminar">
+                        <i class="bi bi-trash"></i> Sí, Eliminar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block extra_js %}
+    <!-- Cargar FullCalendar desde CDN alternativo -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/locales/es.js'></script>
+    <script>
+        let calendar;
+        let citaActualId = null;
+
+        // Función para inicializar el calendario
+        function initCalendar() {
+            // Verificar que FullCalendar esté disponible
+            if (typeof FullCalendar === 'undefined') {
+                console.error('FullCalendar no está disponible');
+                var calendarEl = document.getElementById('calendar');
+                if (calendarEl) {
+                    calendarEl.innerHTML = '<div class="alert alert-danger">Error: FullCalendar no se cargó correctamente. Por favor recarga la página.</div>';
+                }
+                return;
+            }
+
+            var calendarEl = document.getElementById('calendar');
+            
+            if (!calendarEl) {
+                console.error('No se encontró el elemento #calendar');
+                return;
+            }
+            
+            try {
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        locale: 'es',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,listMonth'
+                        },
+                        buttonText: {
+                            today: 'Hoy',
+                            month: 'Mes',
+                            list: 'Lista'
+                        },
+                        height: 'auto',
+                        aspectRatio: 1.8,
+                        firstDay: 1, // Comienza en lunes
+                        events: function(fetchInfo, successCallback, failureCallback) {
+                            // Obtener todas las citas sin filtros
+                            let url = '{% url "vet_agenda_api" %}?start=' + fetchInfo.startStr + '&end=' + fetchInfo.endStr;
+                            
+                            fetch(url)
+                                .then(response => response.json())
+                                .then(data => {
+                                    successCallback(data);
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    failureCallback(error);
+                                });
+                        },
+                        eventClick: function(info) {
+                            citaActualId = info.event.id;
+                            mostrarDetalleCita(info.event);
+                            var modal = new bootstrap.Modal(document.getElementById('citaModal'));
+                            modal.show();
+                        },
+                        eventDidMount: function(info) {
+                            // Tooltip con información completa
+                            const props = info.event.extendedProps;
+                            const hora = info.event.start.toLocaleTimeString('es-ES', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                            });
+                            info.el.setAttribute('title', 
+                                `${hora} - ${props.mascota} (${props.tipo_mascota}) - ${props.propietario}`
+                            );
+                        },
+                        dayMaxEvents: true, // Muestra "+X más" si hay muchos eventos
+                        moreLinkClick: 'day' // Al hacer click en "+X más", cambia a vista día
+                    });
+
+                calendar.render();
+                console.log('Calendario inicializado correctamente');
+            } catch (error) {
+                console.error('Error al inicializar el calendario:', error);
+                calendarEl.innerHTML = '<div class="alert alert-danger">Error al inicializar el calendario: ' + error.message + '</div>';
+            }
+        }
+
+        // Esperar a que los scripts estén cargados
+        function checkAndInit() {
+            if (typeof FullCalendar !== 'undefined') {
+                initCalendar();
+            } else {
+                setTimeout(checkAndInit, 100);
+            }
+        }
+
+        // Inicializar cuando la página esté lista
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkAndInit);
+        } else {
+            checkAndInit();
+        }
+
+        function mostrarDetalleCita(event) {
+            const props = event.extendedProps;
+            const fechaHora = event.start;
+            const fechaStr = fechaHora.toLocaleDateString('es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            const horaStr = fechaHora.toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            let html = `
+                <div class="mb-3">
+                    <strong>Fecha y Hora:</strong><br>
+                    ${fechaStr}<br>
+                    <span style="font-size: 1.1rem; color: #1a73e8; font-weight: 500;">${horaStr}</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Mascota:</strong><br>
+                    ${props.mascota} <span class="badge bg-secondary">${props.tipo_mascota}</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Propietario:</strong><br>
+                    ${props.propietario}
+                </div>
+            `;
+            
+            if (props.motivo) {
+                html += `
+                    <div class="mb-3">
+                        <strong>Motivo:</strong><br>
+                        ${props.motivo}
+                    </div>
+                `;
+            }
+            
+            html += `
+                <div class="mb-3">
+                    <strong>Estado:</strong><br>
+                    <span class="badge bg-${props.es_pasada ? 'danger' : 'success'}">
+                        ${props.es_pasada ? 'Pasada' : 'Futura'}
+                    </span>
+                </div>
+            `;
+            
+            document.getElementById('citaModalBody').innerHTML = html;
+            document.getElementById('btnVerDetalle').href = `/usuarios/vet/cita/${event.id}/`;
+        }
+
+        function confirmarEliminar() {
+            var confirmModal = new bootstrap.Modal(document.getElementById('confirmarModal'));
+            confirmModal.show();
+        }
+
+        // Función para obtener el token CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        document.getElementById('btnConfirmarEliminar').addEventListener('click', function() {
+            if (!citaActualId) return;
+            
+            const csrftoken = getCookie('csrftoken');
+            
+            fetch(`/usuarios/vet/cita/${citaActualId}/eliminar/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Cerrar modales
+                    bootstrap.Modal.getInstance(document.getElementById('citaModal')).hide();
+                    bootstrap.Modal.getInstance(document.getElementById('confirmarModal')).hide();
+                    
+                    // Refrescar calendario
+                            if (calendar) {
+                        calendar.refetchEvents();
+                    }
+                    
+                    // Mostrar mensaje de éxito
+                    alert('Cita eliminada correctamente.');
+                } else {
+                    alert('Error al eliminar la cita.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al eliminar la cita.');
+            });
+        });
+    </script>
 {% endblock %}

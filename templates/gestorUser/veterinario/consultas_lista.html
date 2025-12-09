@@ -2,8 +2,126 @@
 
 {% block titulo %}Consultas - Veterinario{% endblock %}
 
+{% block extra_css %}
+    <style>
+        /* Estilos para el modal */
+        #nuevaConsultaModal .modal-body {
+            scrollbar-width: thin;
+            scrollbar-color: #1ed1da #f1f1f1;
+        }
+        
+        #nuevaConsultaModal .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #nuevaConsultaModal .modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        #nuevaConsultaModal .modal-body::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%);
+            border-radius: 4px;
+        }
+        
+        #nuevaConsultaModal .form-control-sm,
+        #nuevaConsultaModal .form-select {
+            font-size: 0.875rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s;
+        }
+        
+        #nuevaConsultaModal .form-control-sm:focus,
+        #nuevaConsultaModal .form-select:focus {
+            border-color: #1ed1da;
+            box-shadow: 0 0 0 0.2rem rgba(30, 209, 218, 0.25);
+        }
+        
+        #nuevaConsultaModal .form-label {
+            font-size: 0.875rem;
+            margin-bottom: 0.4rem;
+            color: #495057;
+        }
+        
+        #nuevaConsultaModal .modal-content {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        #nuevaConsultaModal .btn-primary {
+            box-shadow: 0 4px 12px rgba(30, 209, 218, 0.3);
+            transition: all 0.3s;
+        }
+        
+        #nuevaConsultaModal .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(30, 209, 218, 0.4);
+        }
+        
+        #nuevaConsultaModal .invalid-feedback {
+            font-size: 0.75rem;
+        }
+        
+        #nuevaConsultaModal .alert-danger {
+            font-size: 0.875rem;
+            padding: 0.75rem;
+        }
+        
+        /* Estilos para el modal de mascota */
+        #nuevaMascotaModal .modal-body {
+            scrollbar-width: thin;
+            scrollbar-color: #1ed1da #f1f1f1;
+        }
+        
+        #nuevaMascotaModal .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #nuevaMascotaModal .modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        #nuevaMascotaModal .modal-body::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%);
+            border-radius: 4px;
+        }
+        
+        #nuevaMascotaModal .form-control-sm,
+        #nuevaMascotaModal .form-select {
+            font-size: 0.875rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s;
+        }
+        
+        #nuevaMascotaModal .form-control-sm:focus,
+        #nuevaMascotaModal .form-select:focus {
+            border-color: #1ed1da;
+            box-shadow: 0 0 0 0.2rem rgba(30, 209, 218, 0.25);
+        }
+        
+        #nuevaMascotaModal .btn-primary {
+            box-shadow: 0 4px 12px rgba(30, 209, 218, 0.3);
+            transition: all 0.3s;
+        }
+        
+        #nuevaMascotaModal .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(30, 209, 218, 0.4);
+        }
+    </style>
+{% endblock %}
+
 {% block contenido %}
-    <h2 class="mb-4"><i class="bi bi-clipboard-pulse"></i> Consultas Médicas</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="bi bi-clipboard-pulse"></i> Consultas Médicas</h2>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevaConsultaModal">
+            <i class="bi bi-plus-circle"></i> Nueva Consulta
+        </button>
+    </div>
 
     <!-- Filtros -->
     <div class="card mb-4">
@@ -34,7 +152,7 @@
                                 <th>Acciones</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="consultasTableBody">
                             {% for consulta in consultas %}
                             <tr>
                                 <td>{{ consulta.fecha_consulta|date:"d/m/Y H:i" }}</td>
@@ -67,4 +185,397 @@
             {% endif %}
         </div>
     </div>
+
+    <!-- Modal para Nueva Consulta -->
+    <div class="modal fade" id="nuevaConsultaModal" tabindex="-1" aria-labelledby="nuevaConsultaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%); color: white; border: none;">
+                    <h5 class="modal-title" id="nuevaConsultaModalLabel" style="font-weight: 600;">
+                        <i class="bi bi-plus-circle"></i> Nueva Consulta Médica
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="nuevaConsultaForm" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body" style="max-height: 70vh; overflow-y: auto; padding: 1.5rem;">
+                        <div id="formErrors" class="alert alert-danger d-none"></div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label fw-semibold small mb-0">{{ form.mascota.label }} <span class="text-danger">*</span></label>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-primary" data-bs-toggle="modal" data-bs-target="#nuevaMascotaModal" style="font-size: 0.75rem; text-decoration: none;">
+                                        <i class="bi bi-plus-circle"></i> Agregar Mascota
+                                    </button>
+                                </div>
+                                {{ form.mascota }}
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">{{ form.fecha_consulta.label }} <span class="text-danger">*</span></label>
+                                {{ form.fecha_consulta }}
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">{{ form.motivo.label }} <span class="text-danger">*</span></label>
+                                <textarea name="{{ form.motivo.name }}" class="form-control form-control-sm" rows="2" placeholder="Ingrese el motivo de la consulta"></textarea>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">{{ form.sintomas.label }}</label>
+                                <textarea name="{{ form.sintomas.name }}" class="form-control form-control-sm" rows="2" placeholder="Describa los síntomas observados"></textarea>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">{{ form.diagnostico.label }}</label>
+                                <textarea name="{{ form.diagnostico.name }}" class="form-control form-control-sm" rows="2" placeholder="Ingrese el diagnóstico"></textarea>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">{{ form.observaciones.label }}</label>
+                                <textarea name="{{ form.observaciones.name }}" class="form-control form-control-sm" rows="2" placeholder="Observaciones adicionales"></textarea>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small">{{ form.estado.label }} <span class="text-danger">*</span></label>
+                                {{ form.estado }}
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small">{{ form.costo.label }}</label>
+                                <input type="number" name="{{ form.costo.name }}" class="form-control form-control-sm" step="0.01" placeholder="0.00">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small">{{ form.pagada.label }}</label>
+                                <div class="form-check mt-2">
+                                    <input type="checkbox" name="{{ form.pagada.name }}" class="form-check-input" id="{{ form.pagada.id_for_label }}">
+                                    <label class="form-check-label" for="{{ form.pagada.id_for_label }}">
+                                        Pagada
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #e0e0e0; padding: 1rem 1.5rem; background: #f8f9fa;">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%); border: none;">
+                            <i class="bi bi-save"></i> Guardar Consulta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Nueva Mascota -->
+    <div class="modal fade" id="nuevaMascotaModal" tabindex="-1" aria-labelledby="nuevaMascotaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%); color: white; border: none;">
+                    <h5 class="modal-title" id="nuevaMascotaModalLabel" style="font-weight: 600;">
+                        <i class="bi bi-heart"></i> Agregar Nueva Mascota
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="nuevaMascotaForm" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body" style="max-height: 70vh; overflow-y: auto; padding: 1.5rem;">
+                        <div id="mascotaErrors" class="alert alert-danger d-none"></div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Nombre de la Mascota <span class="text-danger">*</span></label>
+                                <input type="text" name="nombre" class="form-control form-control-sm" required placeholder="Ej: Max, Luna">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Tipo <span class="text-danger">*</span></label>
+                                <select name="tipo_mascota" class="form-select form-select-sm" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="perro">Perro</option>
+                                    <option value="gato">Gato</option>
+                                    <option value="ave">Ave</option>
+                                    <option value="conejo">Conejo</option>
+                                    <option value="hamster">Hamster</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Raza</label>
+                                <input type="text" name="raza" class="form-control form-control-sm" placeholder="Ej: Labrador, Persa">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Sexo</label>
+                                <select name="sexo" class="form-select form-select-sm">
+                                    <option value="">Seleccione...</option>
+                                    <option value="macho">Macho</option>
+                                    <option value="hembra">Hembra</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Edad</label>
+                                <input type="text" name="edad" class="form-control form-control-sm" placeholder="Ej: 2 años, 6 meses">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Peso (kg)</label>
+                                <input type="number" name="peso" class="form-control form-control-sm" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Color</label>
+                                <input type="text" name="color" class="form-control form-control-sm" placeholder="Ej: Negro, Blanco">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Nombre del Propietario <span class="text-danger">*</span></label>
+                                <input type="text" name="propietario_nombre" class="form-control form-control-sm" required placeholder="Nombre del propietario">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">Observaciones</label>
+                                <textarea name="observaciones" class="form-control form-control-sm" rows="2" placeholder="Observaciones adicionales sobre la mascota"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #e0e0e0; padding: 1rem 1.5rem; background: #f8f9fa;">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%); border: none; box-shadow: 0 4px 12px rgba(30, 209, 218, 0.3);">
+                            <i class="bi bi-save"></i> Guardar Mascota
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        document.getElementById('nuevaConsultaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const errorsDiv = document.getElementById('formErrors');
+            
+            // Deshabilitar botón y mostrar loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Guardando...';
+            errorsDiv.classList.add('d-none');
+            
+            // Limpiar errores previos
+            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+            
+            fetch('{% url "vet_consulta_crear_ajax" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Cerrar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('nuevaConsultaModal'));
+                    modal.hide();
+                    
+                    // Limpiar formulario
+                    form.reset();
+                    
+                    // Mostrar mensaje de éxito y recargar página
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    // Mostrar errores
+                    if (data.errors) {
+                        let errorHtml = '<strong>Por favor corrige los siguientes errores:</strong><ul class="mb-0">';
+                        for (const [field, error] of Object.entries(data.errors)) {
+                            errorHtml += `<li>${error}</li>`;
+                            
+                            // Marcar campo con error
+                            const fieldInput = form.querySelector(`[name="${field}"]`);
+                            if (fieldInput) {
+                                fieldInput.classList.add('is-invalid');
+                                const feedback = fieldInput.closest('.mb-3').querySelector('.invalid-feedback');
+                                if (feedback) {
+                                    feedback.textContent = error;
+                                }
+                            }
+                        }
+                        errorHtml += '</ul>';
+                        errorsDiv.innerHTML = errorHtml;
+                        errorsDiv.classList.remove('d-none');
+                    }
+                    
+                    // Restaurar botón
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-save"></i> Guardar Consulta';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorsDiv.innerHTML = '<strong>Error al guardar la consulta. Por favor intenta nuevamente.</strong>';
+                errorsDiv.classList.remove('d-none');
+                
+                // Restaurar botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-save"></i> Guardar Consulta';
+            });
+        });
+
+        // Limpiar formulario al cerrar el modal
+        document.getElementById('nuevaConsultaModal').addEventListener('hidden.bs.modal', function() {
+            const form = document.getElementById('nuevaConsultaForm');
+            form.reset();
+            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+            document.getElementById('formErrors').classList.add('d-none');
+        });
+
+        // Manejar creación de nueva mascota
+        document.getElementById('nuevaMascotaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const errorsDiv = document.getElementById('mascotaErrors');
+            
+            // Deshabilitar botón y mostrar loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Guardando...';
+            errorsDiv.classList.add('d-none');
+            
+            // Limpiar errores previos
+            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+            
+            fetch('{% url "vet_mascota_crear_ajax" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Cerrar modal de mascota
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('nuevaMascotaModal'));
+                    modal.hide();
+                    
+                    // Agregar la nueva mascota al select de consulta
+                    const mascotaSelect = document.querySelector('#nuevaConsultaForm select[name="mascota"]');
+                    if (mascotaSelect) {
+                        const option = document.createElement('option');
+                        option.value = data.mascota.id;
+                        option.textContent = `${data.mascota.nombre} (${data.mascota.tipo_mascota})`;
+                        option.selected = true;
+                        mascotaSelect.appendChild(option);
+                    }
+                    
+                    // Limpiar formulario de mascota
+                    form.reset();
+                    
+                    // Mostrar mensaje de éxito
+                    alert(data.message);
+                } else {
+                    // Mostrar errores
+                    if (data.errors) {
+                        let errorHtml = '<strong>Por favor corrige los siguientes errores:</strong><ul class="mb-0">';
+                        for (const [field, error] of Object.entries(data.errors)) {
+                            errorHtml += `<li>${error}</li>`;
+                            
+                            // Marcar campo con error
+                            const fieldInput = form.querySelector(`[name="${field}"]`);
+                            if (fieldInput) {
+                                fieldInput.classList.add('is-invalid');
+                                const feedback = fieldInput.closest('.col-md-6, .col-12').querySelector('.invalid-feedback');
+                                if (feedback) {
+                                    feedback.textContent = error;
+                                }
+                            }
+                        }
+                        errorHtml += '</ul>';
+                        errorsDiv.innerHTML = errorHtml;
+                        errorsDiv.classList.remove('d-none');
+                    }
+                    
+                    // Restaurar botón
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-save"></i> Guardar Mascota';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorsDiv.innerHTML = '<strong>Error al guardar la mascota. Por favor intenta nuevamente.</strong>';
+                errorsDiv.classList.remove('d-none');
+                
+                // Restaurar botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-save"></i> Guardar Mascota';
+            });
+        });
+
+        // Limpiar formulario de mascota al cerrar el modal
+        document.getElementById('nuevaMascotaModal').addEventListener('hidden.bs.modal', function() {
+            const form = document.getElementById('nuevaMascotaForm');
+            form.reset();
+            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+            document.getElementById('mascotaErrors').classList.add('d-none');
+        });
+    </script>
 {% endblock %}

@@ -1,0 +1,353 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra Confirmada • Veterinaria</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    
+    <style>
+        :root{
+            --accent:#20bec6;
+            --accent2:#0aa1af;
+            --light:#f6fafa;
+            --card:#ffffff;
+            --text:#1c2b2e;
+            --muted:#889b9d;
+            --success:#28a745;
+        }
+
+        body{
+            background: linear-gradient(135deg, #e7f9fb 0%, #fbfefd 100%);
+            font-family: "Poppins", Arial, sans-serif;
+            padding: 30px 16px;
+            min-height: 100vh;
+        }
+
+        .confirm-wrap{
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .confirm-card{
+            background: var(--card);
+            border-radius: 18px;
+            padding: 40px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.06);
+            border: 1px solid #e7eff0;
+            text-align: center;
+        }
+
+        .success-icon{
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--success), #20c997);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .success-icon i{
+            font-size: 3rem;
+            color: white;
+        }
+
+        .page-title{
+            font-weight: 700;
+            font-size: 2.5rem;
+            color: var(--text);
+            margin-bottom: 15px;
+        }
+
+        .subtitle{
+            color: var(--muted);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .order-number{
+            background: linear-gradient(90deg, rgba(32,189,198,0.12), rgba(12,169,112,0.12));
+            border-radius: 14px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .order-number-label{
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+
+        .order-number-value{
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+        }
+
+        .info-section{
+            background: var(--light);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .info-title{
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--text);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .info-row{
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .info-row:last-child{
+            border-bottom: none;
+        }
+
+        .info-label{
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .info-value{
+            font-weight: 600;
+            color: var(--text);
+            text-align: right;
+        }
+
+        .product-list{
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .product-item{
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .product-item:last-child{
+            border-bottom: none;
+        }
+
+        .total-box{
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-label{
+            font-size: 1.2rem;
+        }
+
+        .total-value{
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .btn-primary-custom{
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 10px;
+        }
+
+        .btn-primary-custom:hover{
+            background: var(--accent2);
+            color: white;
+        }
+
+        .btn-outline-custom{
+            background: white;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 10px;
+        }
+
+        .btn-outline-custom:hover{
+            background: var(--accent);
+            color: white;
+        }
+
+        @media (max-width: 767px){
+            .page-title{ font-size: 2rem; }
+            .confirm-card{ padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+    
+<div class="confirm-wrap">
+    <div class="confirm-card">
+        <!-- Icono de éxito -->
+        <div class="success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+
+        <!-- Título -->
+        <h1 class="page-title">¡Compra Confirmada!</h1>
+        <p class="subtitle">Tu pedido ha sido procesado exitosamente</p>
+
+        <!-- Número de orden -->
+        <div class="order-number">
+            <div class="order-number-label">Número de Orden</div>
+            <div class="order-number-value">{{ numero_orden }}</div>
+        </div>
+
+        <!-- Información del cliente -->
+        <div class="info-section">
+            <h3 class="info-title">
+                <i class="bi bi-person-circle"></i> Información del Cliente
+            </h3>
+            <div class="info-row">
+                <span class="info-label">Nombre:</span>
+                <span class="info-value">{{ nombre_completo }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ email }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Teléfono:</span>
+                <span class="info-value">{{ telefono }}</span>
+            </div>
+        </div>
+
+        <!-- Dirección de envío -->
+        <div class="info-section">
+            <h3 class="info-title">
+                <i class="bi bi-geo-alt"></i> Dirección de Envío
+            </h3>
+            <div class="info-row">
+                <span class="info-label">Dirección:</span>
+                <span class="info-value">{{ direccion }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Ciudad:</span>
+                <span class="info-value">{{ ciudad }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Código Postal:</span>
+                <span class="info-value">{{ codigo_postal }}</span>
+            </div>
+        </div>
+
+        <!-- Método de pago -->
+        <div class="info-section">
+            <h3 class="info-title">
+                <i class="bi bi-credit-card"></i> Método de Pago
+            </h3>
+            <div class="info-row">
+                <span class="info-label">Método:</span>
+                <span class="info-value">
+                    {% if metodo_pago == 'tarjeta' %}
+                        Tarjeta de Crédito/Débito
+                    {% elif metodo_pago == 'transferencia' %}
+                        Transferencia Bancaria
+                    {% elif metodo_pago == 'efectivo' %}
+                        Pago contra entrega
+                    {% else %}
+                        {{ metodo_pago }}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Productos comprados -->
+        <div class="info-section">
+            <h3 class="info-title">
+                <i class="bi bi-bag-check"></i> Productos Comprados
+            </h3>
+            <div class="product-list">
+                {% for key, item in carrito.items %}
+                <div class="product-item">
+                    <div>
+                        <strong>{{ item.nombre }}</strong>
+                        <br>
+                        <small class="text-muted">Cantidad: {{ item.cantidad }} x ${{ item.precio|floatformat:2 }}</small>
+                    </div>
+                    <div class="info-value">
+                        ${{ item.subtotal|floatformat:2 }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Total -->
+        <div class="total-box">
+            <span class="total-label">Total Pagado:</span>
+            <span class="total-value">${{ total|floatformat:2 }}</span>
+        </div>
+
+        <!-- Mensaje adicional -->
+        <div class="alert alert-info mt-4" role="alert">
+            <i class="bi bi-info-circle"></i>
+            <strong>¡Gracias por tu compra!</strong><br>
+            Recibirás un correo de confirmación en <strong>{{ email }}</strong> con los detalles de tu pedido.
+            {% if metodo_pago == 'transferencia' %}
+                <br><br>
+                <strong>Instrucciones para transferencia:</strong><br>
+                Por favor realiza la transferencia al número de cuenta que se enviará a tu correo electrónico.
+            {% elif metodo_pago == 'efectivo' %}
+                <br><br>
+                <strong>Recordatorio:</strong><br>
+                El pago se realizará al momento de la entrega. Asegúrate de tener el monto exacto.
+            {% endif %}
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="d-flex justify-content-center flex-wrap mt-4">
+            <a href="/vet_inicio/" class="btn btn-primary-custom">
+                <i class="bi bi-house-door"></i> Volver al Inicio
+            </a>
+            <a href="/productos/carrito/" class="btn btn-outline-custom">
+                <i class="bi bi-cart"></i> Ver Carrito
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
+

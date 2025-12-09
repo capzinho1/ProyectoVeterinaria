@@ -258,7 +258,7 @@
 <div class="container my-5">
     <h1 class="text-center mb-4">Collares y Correas</h1>
     <div class="row">
-        {% for producto in collares %}
+        {% for producto in collar %}
         <div class="col-md-4 mb-4 d-flex justify-content-center">
             <div class="card">
                 <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
@@ -286,7 +286,7 @@
     </div>
 
     <div class="d-flex justify-content-start mt-4">
-        <a href="/vet_inicio/" class="btn-volver">
+        <a href="javascript:history.back()" class="btn-volver">
             <i class="bi bi-arrow-left"></i> Volver
         </a>
     </div>
