@@ -381,7 +381,13 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <small class="form-text text-muted">Horario de atención: 09:00 - 18:00</small>
+                        <small class="form-text text-muted">Horario de atención: 09:00 - 18:00 (Lunes a Viernes)</small>
+                        <div id="loading-horas" class="text-muted mt-1" style="display: none;">
+                            <small><i class="bi bi-hourglass-split"></i> Cargando horas disponibles...</small>
+                        </div>
+                        <div id="sin-horas-disponibles" class="text-warning mt-1" style="display: none;">
+                            <small><i class="bi bi-exclamation-triangle"></i> No hay horas disponibles para esta fecha. Por favor seleccione otra fecha.</small>
+                        </div>
                     </div>
                     
                     <!-- Motivo (Opcional) -->
@@ -607,6 +613,100 @@
                     }
                 }
             });
+            
+            // ========== CARGAR HORAS DISPONIBLES DINÁMICAMENTE ==========
+            const fechaInput = document.getElementById('id_fecha');
+            const horaSelect = document.getElementById('id_hora');
+            const loadingDiv = document.getElementById('loading-horas');
+            const sinHorasDiv = document.getElementById('sin-horas-disponibles');
+            
+            if (fechaInput && horaSelect) {
+                // Función para cargar horas disponibles
+                function cargarHorasDisponibles(fecha) {
+                    if (!fecha) {
+                        // Si no hay fecha, limpiar el select de horas
+                        horaSelect.innerHTML = '<option value="">Seleccione una hora...</option>';
+                        horaSelect.disabled = true;
+                        loadingDiv.style.display = 'none';
+                        sinHorasDiv.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Guardar el valor de hora actual si existe (para restaurarlo después)
+                    const horaActual = horaSelect.value;
+                    
+                    // Mostrar indicador de carga
+                    loadingDiv.style.display = 'block';
+                    sinHorasDiv.style.display = 'none';
+                    horaSelect.disabled = true;
+                    
+                    // Hacer petición AJAX para obtener horas disponibles
+                    fetch(`/usuarios/citas/horas-disponibles/?fecha=${fecha}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            loadingDiv.style.display = 'none';
+                            
+                            if (data.error) {
+                                // Si hay error (fecha inválida, fin de semana, etc.)
+                                horaSelect.innerHTML = '<option value="">Seleccione una hora...</option>';
+                                horaSelect.disabled = true;
+                                sinHorasDiv.textContent = `⚠️ ${data.error}`;
+                                sinHorasDiv.style.display = 'block';
+                                return;
+                            }
+                            
+                            // Limpiar y poblar el select con horas disponibles
+                            horaSelect.innerHTML = '<option value="">Seleccione una hora...</option>';
+                            
+                            if (data.horas_disponibles && data.horas_disponibles.length > 0) {
+                                data.horas_disponibles.forEach(function(hora) {
+                                    const option = document.createElement('option');
+                                    option.value = hora.value;
+                                    option.textContent = hora.label;
+                                    horaSelect.appendChild(option);
+                                });
+                                horaSelect.disabled = false;
+                                sinHorasDiv.style.display = 'none';
+                                
+                                // Restaurar la hora seleccionada si existía y está disponible
+                                if (horaActual && horaSelect.querySelector(`option[value="${horaActual}"]`)) {
+                                    horaSelect.value = horaActual;
+                                }
+                            } else {
+                                // No hay horas disponibles
+                                horaSelect.disabled = true;
+                                sinHorasDiv.textContent = '⚠️ No hay horas disponibles para esta fecha. Por favor seleccione otra fecha.';
+                                sinHorasDiv.style.display = 'block';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error al cargar horas disponibles:', error);
+                            loadingDiv.style.display = 'none';
+                            horaSelect.disabled = false;
+                            sinHorasDiv.textContent = '⚠️ Error al cargar horas disponibles. Por favor recargue la página.';
+                            sinHorasDiv.style.display = 'block';
+                        });
+                }
+                
+                // Escuchar cambios en el campo de fecha
+                fechaInput.addEventListener('change', function() {
+                    const fecha = this.value;
+                    // Limpiar la selección de hora actual solo si es un cambio nuevo
+                    if (!horaSelect.querySelector(`option[value="${horaSelect.value}"]:not([disabled])`)) {
+                        horaSelect.value = '';
+                    }
+                    // Cargar horas disponibles para la fecha seleccionada
+                    cargarHorasDisponibles(fecha);
+                });
+                
+                // Al cargar la página, si ya hay una fecha seleccionada, cargar las horas
+                if (fechaInput.value) {
+                    cargarHorasDisponibles(fechaInput.value);
+                } else {
+                    // Si no hay fecha, deshabilitar el select de horas
+                    horaSelect.disabled = true;
+                }
+            }
         });
     </script>
 

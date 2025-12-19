@@ -236,7 +236,11 @@
             {% for medicamento in medicamento %}
             <div class="col-md-4 mb-4 d-flex justify-content-center">
                 <div class="card">
-                    <img src="{{ medicamento.imagen.url }}" alt="{{ medicamento.nombre }}">
+                    {% if medicamento.imagen_principal %}
+                        <img src="{{ medicamento.imagen_principal.url_imagen }}" alt="{{ medicamento.nombre }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300x300/734dff/ffffff?text={{ medicamento.nombre|urlencode }}" alt="{{ medicamento.nombre }}">
+                    {% endif %}
                     <div class="card-body text-center">
                         <h5 class="card-title">{{ medicamento.nombre }}</h5>
                         <p>{{ medicamento.descripcion|truncatechars:60 }}</p>
@@ -249,7 +253,11 @@
                             data-nombre="{{ medicamento.nombre }}"
                             data-descripcion="{{ medicamento.descripcion }}"
                             data-precio="{{ medicamento.precio }}"
-                            data-imagen="{{ medicamento.imagen.url }}">
+                            {% if medicamento.imagen_principal %}
+                            data-imagen="{{ medicamento.imagen_principal.url_imagen }}"
+                            {% else %}
+                            data-imagen="https://via.placeholder.com/300x300/734dff/ffffff?text={{ medicamento.nombre|urlencode }}"
+                            {% endif %}>
                             Ver Detalle
                         </button>
                     </div>

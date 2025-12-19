@@ -519,6 +519,76 @@ def agendar_cita(request):
     })
 
 
+@login_required
+def obtener_horas_disponibles(request):
+    """
+    Vista AJAX para obtener las horas disponibles para una fecha específica.
+    Excluye las horas que ya están ocupadas.
+    
+    Parámetros GET:
+        fecha: Fecha en formato YYYY-MM-DD
+    
+    Retorna:
+        JSON con lista de horas disponibles en formato [{"value": "09:00", "label": "09:00"}, ...]
+    """
+    from datetime import datetime, time
+    from django.http import JsonResponse
+    
+    fecha_str = request.GET.get('fecha')
+    if not fecha_str:
+        return JsonResponse({'error': 'Fecha no proporcionada'}, status=400)
+    
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    except ValueError:
+        return JsonResponse({'error': 'Formato de fecha inválido'}, status=400)
+    
+    # Validar que la fecha no sea en el pasado
+    if fecha < timezone.now().date():
+        return JsonResponse({'error': 'No se pueden agendar citas en el pasado'}, status=400)
+    
+    # Validar que sea lunes a viernes
+    dia_semana = fecha.weekday()
+    if dia_semana >= 5:  # 5 = sábado, 6 = domingo
+        return JsonResponse({'error': 'Las citas solo pueden agendarse de lunes a viernes'}, status=400)
+    
+    # Horarios disponibles: 9am-6pm, intervalos de 1 hora
+    todas_las_horas = [
+        (time(9, 0), '09:00'),
+        (time(10, 0), '10:00'),
+        (time(11, 0), '11:00'),
+        (time(12, 0), '12:00'),
+        (time(13, 0), '13:00'),
+        (time(14, 0), '14:00'),
+        (time(15, 0), '15:00'),
+        (time(16, 0), '16:00'),
+        (time(17, 0), '17:00'),
+        (time(18, 0), '18:00'),
+    ]
+    
+    # Obtener horas ocupadas para esta fecha
+    horas_ocupadas = CitaMedica.objects.filter(
+        fecha=fecha
+    ).values_list('hora', flat=True)
+    
+    # Filtrar horas disponibles (excluir ocupadas)
+    horas_disponibles = [
+        {'value': hora_time.strftime('%H:%M'), 'label': hora_label}
+        for hora_time, hora_label in todas_las_horas
+        if hora_time not in horas_ocupadas
+    ]
+    
+    # También excluir horas en el pasado si la fecha es hoy
+    if fecha == timezone.now().date():
+        hora_actual = timezone.now().time()
+        horas_disponibles = [
+            h for h in horas_disponibles
+            if datetime.strptime(h['value'], '%H:%M').time() > hora_actual
+        ]
+    
+    return JsonResponse({'horas_disponibles': horas_disponibles})
+
+
 # ==================== IMPORTAR VISTAS DEL SISTEMA DE VETERINARIO ====================
 from .veterinario_views import *
 

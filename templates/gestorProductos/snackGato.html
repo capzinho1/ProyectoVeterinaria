@@ -275,7 +275,11 @@
             {% for snack in snackgproductos %}
             <div class="col-md-4 mb-4 d-flex justify-content-center">
                 <div class="card">
-                    <img src="{{ snack.imagen.url }}" alt="{{ snack.nombre }}">
+                    {% if snack.imagen_principal %}
+                        <img src="{{ snack.imagen_principal.url_imagen }}" alt="{{ snack.nombre }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300x300/ff74b9/ffffff?text={{ snack.nombre|urlencode }}" alt="{{ snack.nombre }}">
+                    {% endif %}
                     <div class="card-body text-center">
                         <h5 class="card-title">{{ snack.nombre }}</h5>
                         <p>{{ snack.descripcion|truncatechars:60 }}</p>
@@ -288,7 +292,11 @@
                             data-nombre="{{ snack.nombre }}"
                             data-descripcion="{{ snack.descripcion }}"
                             data-precio="{{ snack.precio }}"
-                            data-imagen="{{ snack.imagen.url }}">
+                            {% if snack.imagen_principal %}
+                            data-imagen="{{ snack.imagen_principal.url_imagen }}"
+                            {% else %}
+                            data-imagen="https://via.placeholder.com/300x300/ff74b9/ffffff?text={{ snack.nombre|urlencode }}"
+                            {% endif %}>
                             Ver Detalle
                         </button>
                     </div>

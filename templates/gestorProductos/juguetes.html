@@ -164,7 +164,11 @@
         {% for producto in juguete %}
         <div class="col-md-4 mb-4 d-flex justify-content-center">
             <div class="card">
-                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                {% if producto.imagen_principal %}
+                    <img src="{{ producto.imagen_principal.url_imagen }}" alt="{{ producto.nombre }}">
+                {% else %}
+                    <img src="https://via.placeholder.com/300x300/d63384/ffffff?text={{ producto.nombre|urlencode }}" alt="{{ producto.nombre }}">
+                {% endif %}
                 <div class="card-body text-center">
                     <h5 class="card-title">{{ producto.nombre }}</h5>
                     <p>{{ producto.descripcion|truncatechars:60 }}</p>
@@ -177,7 +181,11 @@
                         data-nombre="{{ producto.nombre }}"
                         data-descripcion="{{ producto.descripcion }}"
                         data-precio="{{ producto.precio }}"
-                        data-imagen="{{ producto.imagen.url }}">
+                        {% if producto.imagen_principal %}
+                        data-imagen="{{ producto.imagen_principal.url_imagen }}"
+                        {% else %}
+                        data-imagen="https://via.placeholder.com/300x300/d63384/ffffff?text={{ producto.nombre|urlencode }}"
+                        {% endif %}>
                         Ver Detalle
                     </button>
                 </div>

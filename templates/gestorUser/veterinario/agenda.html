@@ -8,27 +8,27 @@
         #calendar {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
             border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 40px rgba(108, 117, 125, 0.1), 0 2px 8px rgba(0,0,0,0.05);
             padding: 2rem;
             min-height: 750px;
-            border: 1px solid rgba(255,255,255,0.8);
+            border: 1px solid #e9ecef;
         }
         
         /* Estilo general tipo Google Calendar mejorado */
         .fc {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         /* Toolbar mejorado */
         .fc-toolbar {
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid #e8eaf6;
+            border-bottom: 2px solid #e9ecef;
         }
         
         .fc-toolbar-title {
             font-size: 2rem;
-            font-weight: 500;
+            font-weight: 600;
             background: linear-gradient(135deg, #1ed1da 0%, #17b7c0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -38,29 +38,29 @@
         
         /* Botones mejorados */
         .fc-button {
-            background: linear-gradient(135deg, #1ed1da 0%, #1ed1da 100%);
-            border: 2px solid #d0d0d0;
-            color: #424242;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid #e9ecef;
+            color: #495057;
             font-weight: 600;
             padding: 0.6rem 1.2rem;
             border-radius: 8px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.1);
             text-transform: none;
             font-size: 0.9rem;
         }
         
         .fc-button:hover {
-            background: linear-gradient(135deg, #e8e8e8 0%, #dadada 100%);
+            background: linear-gradient(135deg, #1ed1da 0%, #87ceeb 100%);
             border-color: #1ed1da;
-            color: #1ed1da;
+            color: #ffffff;
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(30, 209, 218, 0.2);
+            box-shadow: 0 4px 12px rgba(30, 209, 218, 0.3);
         }
         
         .fc-button:active {
             transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.1);
         }
         
         .fc-button-active {
@@ -90,16 +90,16 @@
         
         /* Días del calendario */
         .fc-daygrid-day {
-            border-color: #e8eaf6;
+            border-color: #e9ecef;
             transition: background-color 0.2s ease;
         }
         
         .fc-daygrid-day:hover {
-            background-color: #f5f7fa;
+            background-color: rgba(30, 209, 218, 0.05);
         }
         
         .fc-daygrid-day-number {
-            color: #546e7a;
+            color: #495057;
             padding: 0.75rem;
             font-weight: 500;
             font-size: 0.95rem;
@@ -113,12 +113,12 @@
         
         /* Encabezado de columnas */
         .fc-col-header-cell {
-            border-color: #e8eaf6;
+            border-color: #e9ecef;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         }
         
         .fc-col-header-cell-cushion {
-            color: #37474f;
+            color: #495057;
             font-weight: 600;
             padding: 1rem 0.5rem;
             font-size: 0.85rem;
@@ -128,7 +128,7 @@
         
         /* Día actual destacado */
         .fc-day-today {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+            background: linear-gradient(135deg, rgba(30, 209, 218, 0.1) 0%, rgba(135, 206, 235, 0.1) 100%) !important;
             position: relative;
         }
         
@@ -259,14 +259,14 @@
         
         .modal-body {
             padding: 2rem;
-            color: #424242;
-            background: #fafafa;
+            color: #495057;
+            background: #ffffff;
         }
         
         .modal-footer {
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid #e9ecef;
             padding: 1.5rem 2rem;
-            background: white;
+            background: #f8f9fa;
         }
         
         .modal-body strong {

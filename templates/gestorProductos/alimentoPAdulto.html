@@ -278,7 +278,11 @@
             {% for producto in paproductos %}
             <div class="col-md-4 mb-4 d-flex justify-content-center">
                 <div class="card">
-                    <img src="https://via.placeholder.com/300x300/1ed1da/ffffff?text={{ producto.nombre|urlencode }}" alt="{{ producto.nombre }}" style="width: 100%; height: 250px; object-fit: cover;">
+                    {% if producto.imagen_principal %}
+                        <img src="{{ producto.imagen_principal.url_imagen }}" alt="{{ producto.nombre }}" style="width: 100%; height: 250px; object-fit: cover;">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300x300/1ed1da/ffffff?text={{ producto.nombre|urlencode }}" alt="{{ producto.nombre }}" style="width: 100%; height: 250px; object-fit: cover;">
+                    {% endif %}
                     <div class="card-body text-center">
                         <h5 class="card-title">{{ producto.nombre }}</h5>
                         <p><strong>Marca:</strong> {{ producto.marca }}</p>
@@ -293,7 +297,11 @@
                             data-nombre="{{ producto.nombre }}"
                             data-descripcion="{{ producto.descripcion }}"
                             data-precio="{{ producto.precio }}"
-                            data-imagen="https://via.placeholder.com/300x300/1ed1da/ffffff?text={{ producto.nombre|urlencode }}">
+                            {% if producto.imagen_principal %}
+                            data-imagen="{{ producto.imagen_principal.url_imagen }}"
+                            {% else %}
+                            data-imagen="https://via.placeholder.com/300x300/1ed1da/ffffff?text={{ producto.nombre|urlencode }}"
+                            {% endif %}>
                             Ver Detalle
                         </button>
                     </div>

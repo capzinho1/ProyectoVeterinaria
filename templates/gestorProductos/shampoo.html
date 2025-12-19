@@ -275,7 +275,11 @@
             {% for shampoo in shampoo %}
             <div class="col-md-4 mb-4 d-flex justify-content-center">
                 <div class="card">
-                    <img src="{{ shampoo.imagen.url }}" alt="{{ shampoo.nombre }}">
+                    {% if shampoo.imagen_principal %}
+                        <img src="{{ shampoo.imagen_principal.url_imagen }}" alt="{{ shampoo.nombre }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300x300/734dff/ffffff?text={{ shampoo.nombre|urlencode }}" alt="{{ shampoo.nombre }}">
+                    {% endif %}
                     <div class="card-body text-center">
                         <h5 class="card-title">{{ shampoo.nombre }}</h5>
                         <p>{{ shampoo.descripcion|truncatechars:60 }}</p>
@@ -288,7 +292,11 @@
                             data-nombre="{{ shampoo.nombre }}"
                             data-descripcion="{{ shampoo.descripcion }}"
                             data-precio="{{ shampoo.precio }}"
-                            data-imagen="{{ shampoo.imagen.url }}">
+                            {% if shampoo.imagen_principal %}
+                            data-imagen="{{ shampoo.imagen_principal.url_imagen }}"
+                            {% else %}
+                            data-imagen="https://via.placeholder.com/300x300/734dff/ffffff?text={{ shampoo.nombre|urlencode }}"
+                            {% endif %}>
                             Ver Detalle
                         </button>
                     </div>

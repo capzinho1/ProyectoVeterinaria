@@ -5,6 +5,7 @@ from .models import (
 )
 from django.forms.widgets import DateInput, TimeInput
 from django.contrib.auth.models import User
+from datetime import time
 
 class CitaMedicaForm(forms.ModelForm):
     """
@@ -66,10 +67,10 @@ class CitaMedicaForm(forms.ModelForm):
                 'required': True,
                 'min': None  # Se establecerá dinámicamente en __init__
             }),
-            'hora': TimeInput(attrs={
-                'type': 'time',  # Input tipo hora HTML5
-                'class': 'form-control',
-                'required': True
+            'hora': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True,
+                'id': 'id_hora'
             }),
             'motivo': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -85,6 +86,7 @@ class CitaMedicaForm(forms.ModelForm):
         Establece:
         - Campos obligatorios vs opcionales
         - Fecha mínima (hoy) para evitar citas pasadas
+        - Horas disponibles (9am-6pm, intervalos de 1 hora)
         - Clases CSS para campos con errores de validación
         """
         super().__init__(*args, **kwargs)
@@ -105,6 +107,23 @@ class CitaMedicaForm(forms.ModelForm):
         from django.utils import timezone
         fecha_minima = timezone.now().date()
         self.fields['fecha'].widget.attrs['min'] = fecha_minima.strftime('%Y-%m-%d')
+        self.fields['fecha'].widget.attrs['id'] = 'id_fecha'
+        
+        # ========== HORAS DISPONIBLES ==========
+        # Horarios disponibles: 9am a 6pm, intervalos de 1 hora
+        horas_disponibles = [
+            (time(9, 0), '09:00'),
+            (time(10, 0), '10:00'),
+            (time(11, 0), '11:00'),
+            (time(12, 0), '12:00'),
+            (time(13, 0), '13:00'),
+            (time(14, 0), '14:00'),
+            (time(15, 0), '15:00'),
+            (time(16, 0), '16:00'),
+            (time(17, 0), '17:00'),
+            (time(18, 0), '18:00'),
+        ]
+        self.fields['hora'].choices = [('', 'Seleccione una hora...')] + horas_disponibles
         
         # ========== ESTILOS PARA ERRORES ==========
         # NO agregar clase 'is-invalid' aquí - se manejará en el template/JavaScript
@@ -115,14 +134,17 @@ class CitaMedicaForm(forms.ModelForm):
         """
         Validación específica del campo 'fecha'.
         
-        Verifica que la fecha no sea en el pasado.
+        Verifica que:
+        1. La fecha no sea en el pasado
+        2. La fecha sea de lunes a viernes (no fines de semana)
+        
         Se ejecuta automáticamente antes de clean().
         
         Retorna:
             date: La fecha validada
             
         Lanza:
-            ValidationError: Si la fecha es en el pasado
+            ValidationError: Si la fecha es en el pasado o es fin de semana
         """
         fecha = self.cleaned_data.get('fecha')
         if fecha:
@@ -130,6 +152,11 @@ class CitaMedicaForm(forms.ModelForm):
             # Comparar solo la fecha (sin hora) con la fecha actual
             if fecha < timezone.now().date():
                 raise forms.ValidationError("No se puede agendar una cita en el pasado.")
+            
+            # Validar que sea lunes a viernes (0 = lunes, 6 = domingo)
+            dia_semana = fecha.weekday()
+            if dia_semana >= 5:  # 5 = sábado, 6 = domingo
+                raise forms.ValidationError("Las citas solo pueden agendarse de lunes a viernes.")
         return fecha
     
     def clean(self):
@@ -168,15 +195,15 @@ class CitaMedicaForm(forms.ModelForm):
                 raise forms.ValidationError("No se puede agendar una cita en el pasado.")
             
             # ========== VALIDACIÓN: HORARIO DE ATENCIÓN ==========
-            # Definir horario de atención permitido
-            hora_min = datetime.strptime('09:00', '%H:%M').time()
-            hora_max = datetime.strptime('18:00', '%H:%M').time()
+            # Definir horarios permitidos (9am-6pm, intervalos de 1 hora)
+            horas_permitidas = [
+                time(9, 0), time(10, 0), time(11, 0), time(12, 0), time(13, 0),
+                time(14, 0), time(15, 0), time(16, 0), time(17, 0), time(18, 0)
+            ]
             
-            # Verificar que la hora esté dentro del horario permitido
-            if hora < hora_min:
-                self.add_error('hora', "Las citas solo pueden agendarse a partir de las 09:00 horas.")
-            if hora > hora_max:
-                self.add_error('hora', "Las citas solo pueden agendarse hasta las 18:00 horas.")
+            # Verificar que la hora esté en la lista de horas permitidas
+            if hora not in horas_permitidas:
+                self.add_error('hora', "La hora seleccionada no está disponible. Por favor seleccione una hora válida (9:00 - 18:00, intervalos de 1 hora).")
             
             # ========== VALIDACIÓN: PREVENIR CITAS DUPLICADAS ==========
             # Verificar si ya existe una cita en esa fecha y hora

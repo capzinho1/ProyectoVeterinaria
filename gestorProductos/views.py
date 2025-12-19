@@ -29,6 +29,80 @@ from gestorUser.models import CitaMedica
 
 # Create your views here.
 
+# -------------------------------
+# FUNCIÓN HELPER PARA MANEJAR IMÁGENES
+# -------------------------------
+def procesar_imagenes_producto(request, producto, model_class):
+    """Función helper para procesar imágenes de productos desde el formulario."""
+    from .models import ImagenProducto
+    from django.contrib.contenttypes.models import ContentType
+    
+    # Procesar imágenes desde el formulario
+    urls_imagenes = request.POST.getlist('urls_imagenes[]')
+    ordenes_imagenes = request.POST.getlist('ordenes_imagenes[]')
+    
+    # Obtener ContentType del modelo
+    content_type = ContentType.objects.get_for_model(model_class)
+    
+    # Eliminar imágenes existentes
+    ImagenProducto.objects.filter(
+        content_type=content_type,
+        object_id=producto.id
+    ).delete()
+    
+    # Crear nuevas imágenes
+    for idx, url in enumerate(urls_imagenes):
+        if url.strip():  # Solo si la URL no está vacía
+            orden = int(ordenes_imagenes[idx]) if idx < len(ordenes_imagenes) and ordenes_imagenes[idx] else idx
+            ImagenProducto.objects.create(
+                content_type=content_type,
+                object_id=producto.id,
+                url_imagen=url.strip(),
+                orden=orden
+            )
+
+def obtener_imagenes_producto(producto, model_class):
+    """Función helper para obtener imágenes existentes de un producto."""
+    from .models import ImagenProducto
+    from django.contrib.contenttypes.models import ContentType
+    
+    content_type = ContentType.objects.get_for_model(model_class)
+    return ImagenProducto.objects.filter(
+        content_type=content_type,
+        object_id=producto.id
+    ).order_by('orden', 'fecha_creacion')
+
+def agregar_imagenes_a_productos(productos_queryset, model_class):
+    """
+    Agrega la primera imagen a cada producto en el queryset como atributo 'imagen_principal'.
+    También agrega todas las imágenes como 'imagenes_todas'.
+    """
+    from .models import ImagenProducto
+    from django.contrib.contenttypes.models import ContentType
+    
+    content_type = ContentType.objects.get_for_model(model_class)
+    productos_list = list(productos_queryset)
+    
+    # Obtener todas las imágenes de una vez
+    productos_ids = [p.id for p in productos_list]
+    imagenes = ImagenProducto.objects.filter(
+        content_type=content_type,
+        object_id__in=productos_ids
+    ).order_by('object_id', 'orden', 'fecha_creacion')
+    
+    # Crear un diccionario por producto_id (solo la primera imagen)
+    imagenes_por_producto = {}
+    for imagen in imagenes:
+        if imagen.object_id not in imagenes_por_producto:
+            imagenes_por_producto[imagen.object_id] = imagen
+    
+    # Asignar la primera imagen a cada producto
+    for producto in productos_list:
+        producto.imagen_principal = imagenes_por_producto.get(producto.id)
+        producto.imagenes_todas = [img for img in imagenes if img.object_id == producto.id]
+    
+    return productos_list
+
 # ===========================
 # VISTAS DE SESIÓN
 # ===========================
@@ -131,16 +205,19 @@ def sobreData(request):
 def alimentoPerroAData(request):
     # Mostrar todos los productos sin límite
     paproductos = PAProductos.objects.all().order_by('-id')
+    paproductos = agregar_imagenes_a_productos(paproductos, PAProductos)
     return render(request, 'gestorProductos/alimentoPAdulto.html', {'paproductos': paproductos})
 
 def alimentoPerroCData(request):
     # Mostrar todos los productos sin límite
     pcproductos = PCProductos.objects.all().order_by('-id')
+    pcproductos = agregar_imagenes_a_productos(pcproductos, PCProductos)
     return render(request, 'gestorProductos/alimentoPCachorro.html', {'pcproductos': pcproductos})
 
 def alimentoPerroSData(request):
     # Mostrar todos los productos sin límite
     psproductos = PSProductos.objects.all().order_by('-id')
+    psproductos = agregar_imagenes_a_productos(psproductos, PSProductos)
     return render(request, 'gestorProductos/alimentoPSenior.html', {'psproductos': psproductos})
 
 def antipulgasData(request):
@@ -215,11 +292,13 @@ def eliminarProductoPA(request, codigo):
 # EDITAR PRODUCTO
 def editarProductoPA(request, codigo):
     paproducto = get_object_or_404(PAProductos, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(paproducto, PAProductos)
 
     if request.method == 'POST':
         form = DatatableProductosPAForm(request.POST, instance=paproducto)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, PAProductos)
             messages.success(request, "Producto actualizado correctamente.")
             return redirect('datatable')
         else:
@@ -227,45 +306,55 @@ def editarProductoPA(request, codigo):
     else:
         form = DatatableProductosPAForm(instance=paproducto)
 
-    return render(request, 'gestorProductos/editarProductoPA.html', {'form': form, 'paproducto': paproducto})
+    return render(request, 'gestorProductos/editarProductoPA.html', {
+        'form': form, 
+        'paproducto': paproducto,
+        'imagenes': imagenes_existentes
+    })
 
 def editarProductoPC(request, codigo):
-    # Busca el producto según el codigo
     pcproducto = get_object_or_404(PCProductos, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(pcproducto, PCProductos)
 
     if request.method == 'POST':
-        # Crea el formulario con datos enviados y la instancia del producto
         form = DatatableProductosPCForm(request.POST, instance=pcproducto)
         if form.is_valid():
-            form.save()  # Guarda los cambios en el modelo
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, PCProductos)
             messages.success(request, "Producto actualizado correctamente.")
-            return redirect('datatable')  # Redirige al catálogo de perros
+            return redirect('datatable')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
-        # Crea el formulario con la instancia del producto existente
         form = DatatableProductosPCForm(instance=pcproducto)
 
-    return render(request, 'gestorProductos/editarProductoPC.html', {'form': form, 'pcproducto': pcproducto})
+    return render(request, 'gestorProductos/editarProductoPC.html', {
+        'form': form, 
+        'pcproducto': pcproducto,
+        'imagenes': imagenes_existentes
+    })
 
 def editarProductoPS(request, codigo):
-    # Busca el producto según el codigo
     psproducto = get_object_or_404(PSProductos, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(psproducto, PSProductos)
 
     if request.method == 'POST':
-        # Crea el formulario con datos enviados y la instancia del producto
         form = DatatableProductosPSForm(request.POST, instance=psproducto)
         if form.is_valid():
-            form.save()  # Guarda los cambios en el modelo
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, PSProductos)
             messages.success(request, "Producto actualizado correctamente.")
-            return redirect('datatable')  # Redirige al catálogo de perros
+            return redirect('datatable')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
-        # Crea el formulario con la instancia del producto existente
         form = DatatableProductosPSForm(instance=psproducto)
 
-    return render(request, 'gestorProductos/editarProductoPS.html', {'form': form, 'psproducto': psproducto})
+    return render(request, 'gestorProductos/editarProductoPS.html', {
+        'form': form, 
+        'psproducto': psproducto,
+        'imagenes': imagenes_existentes
+    })
 
 # ==========================================
 # VISTAS DE ELIMINAR Y EDITAR PERRO SENIOR
@@ -298,17 +387,25 @@ def eliminarProductoA(request, codigo):
 
 def editarProductoA(request, codigo):
     aproducto = get_object_or_404(AProductos, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(aproducto, AProductos)
+    
     if request.method == 'POST':
         form = DatatableProductosAForm(request.POST, instance=aproducto)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, AProductos)
             messages.success(request, "Producto actualizado correctamente.")
-            return redirect('datatable')  # Redirige al catálogo de perros
+            return redirect('datatable')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableProductosAForm(instance=aproducto)
-    return render(request, 'gestorProductos/editarProductoA.html', {'form': form, 'aproducto': aproducto})
+    
+    return render(request, 'gestorProductos/editarProductoA.html', {
+        'form': form, 
+        'aproducto': aproducto,
+        'imagenes': imagenes_existentes
+    })
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR GATO ADULTO
@@ -325,17 +422,25 @@ def eliminarProductoAGA(request, codigo):
 
 def editarProductoAGA(request, codigo):
     agaproducto = get_object_or_404(AGAProductos, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(agaproducto, AGAProductos)
+    
     if request.method == 'POST':
         form = DatatableAGAForm(request.POST, instance=agaproducto)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, AGAProductos)
             messages.success(request, "Producto actualizado correctamente.")
             return redirect('datatable2')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableAGAForm(instance=agaproducto)
-    return render(request, 'gestorProductos/editarProductoAGA.html', {'form': form, 'agaproducto': agaproducto})
+    
+    return render(request, 'gestorProductos/editarProductoAGA.html', {
+        'form': form, 
+        'agaproducto': agaproducto,
+        'imagenes': imagenes_existentes
+    })
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR GATO CACHORRO
@@ -352,17 +457,25 @@ def eliminarProductoAGC(request, codigo):
 
 def editarProductoAGC(request, codigo):
     agcproducto = get_object_or_404(AGCProductos, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(agcproducto, AGCProductos)
+    
     if request.method == 'POST':
         form = DatatableAGCForm(request.POST, instance=agcproducto)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, AGCProductos)
             messages.success(request, "Producto actualizado correctamente.")
             return redirect('datatable2')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableAGCForm(instance=agcproducto)
-    return render(request, 'gestorProductos/editarProductoAGC.html', {'form': form, 'agcproducto': agcproducto})
+    
+    return render(request, 'gestorProductos/editarProductoAGC.html', {
+        'form': form, 
+        'agcproducto': agcproducto,
+        'imagenes': imagenes_existentes
+    })
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR SNACK GATO
@@ -379,17 +492,25 @@ def eliminarProductoSnackG(request, codigo):
 
 def editarProductoSnackG(request, codigo):
     snackgproducto = get_object_or_404(SnackGProductos, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(snackgproducto, SnackGProductos)
+    
     if request.method == 'POST':
         form = DatatableSnackGForm(request.POST, instance=snackgproducto)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, SnackGProductos)
             messages.success(request, "Producto actualizado correctamente.")
             return redirect('datatable2')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableSnackGForm(instance=snackgproducto)
-    return render(request, 'gestorProductos/editarProductoSnackG.html', {'form': form, 'snackgproducto': snackgproducto})
+    
+    return render(request, 'gestorProductos/editarProductoSnackG.html', {
+        'form': form, 
+        'snackgproducto': snackgproducto,
+        'imagenes': imagenes_existentes
+    })
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR SNACK PERRO
@@ -406,17 +527,25 @@ def eliminarProductoSnackP(request, codigo):
 
 def editarProductoSnackP(request, codigo):
     snackpproducto = get_object_or_404(SnackPProductos, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(snackpproducto, SnackPProductos)
+    
     if request.method == 'POST':
         form = DatatableSnackPForm(request.POST, instance=snackpproducto)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, SnackPProductos)
             messages.success(request, "Producto actualizado correctamente.")
             return redirect('datatable')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableSnackPForm(instance=snackpproducto)
-    return render(request, 'gestorProductos/editarProductoSnackP.html', {'form': form, 'snackpproducto': snackpproducto})
+    
+    return render(request, 'gestorProductos/editarProductoSnackP.html', {
+        'form': form, 
+        'snackpproducto': snackpproducto,
+        'imagenes': imagenes_existentes
+    })
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR ANTIPARASITARIO
@@ -433,17 +562,25 @@ def eliminarProductoAntiparasitario(request, codigo):
 
 def editarProductoAntiparasitario(request, codigo):
     antiparasitario = get_object_or_404(Antiparasitario, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(antiparasitario, Antiparasitario)
+    
     if request.method == 'POST':
         form = DatatableAntiparasitarioForm(request.POST, instance=antiparasitario)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Antiparasitario)
             messages.success(request, "Producto actualizado correctamente.")
             return redirect('datatable3')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableAntiparasitarioForm(instance=antiparasitario)
-    return render(request, 'gestorProductos/editarProductoAntiparasitario.html', {'form': form, 'antiparasitario': antiparasitario})
+    
+    return render(request, 'gestorProductos/editarProductoAntiparasitario.html', {
+        'form': form, 
+        'antiparasitario': antiparasitario,
+        'imagenes': imagenes_existentes
+    })
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR MEDICAMENTO
@@ -460,17 +597,25 @@ def eliminarProductoMedicamento(request, codigo):
 
 def editarProductoMedicamento(request, codigo):
     medicamento = get_object_or_404(Medicamento, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(medicamento, Medicamento)
+    
     if request.method == 'POST':
         form = DatatableMedicamentoForm(request.POST, instance=medicamento)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Medicamento)
             messages.success(request, "Producto actualizado correctamente.")
             return redirect('datatable3')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableMedicamentoForm(instance=medicamento)
-    return render(request, 'gestorProductos/editarProductoMedicamento.html', {'form': form, 'medicamento': medicamento})
+    
+    return render(request, 'gestorProductos/editarProductoMedicamento.html', {
+        'form': form, 
+        'medicamento': medicamento,
+        'imagenes': imagenes_existentes
+    })
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR SHAMPOO
@@ -487,17 +632,26 @@ def eliminarProductoShampoo(request, codigo):
 
 def editarProductoShampoo(request, codigo):
     shampoo = get_object_or_404(Shampoo, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(shampoo, Shampoo)
+    
     if request.method == 'POST':
         form = DatatableShampooForm(request.POST, instance=shampoo)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Shampoo)
             messages.success(request, "Producto actualizado correctamente.")
             return redirect('datatable3')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableShampooForm(instance=shampoo)
-    return render(request, 'gestorProductos/editarProductoShampoo.html', {'form': form, 'shampoo': shampoo, 'is_creating': False})
+    
+    return render(request, 'gestorProductos/editarProductoShampoo.html', {
+        'form': form, 
+        'shampoo': shampoo, 
+        'is_creating': False,
+        'imagenes': imagenes_existentes
+    })
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR COLLAR
@@ -514,17 +668,25 @@ def eliminarProductoCollar(request, codigo):
 
 def editarProductoCollar(request, codigo):
     collar = get_object_or_404(Collar, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(collar, Collar)
+    
     if request.method == 'POST':
         form = DatatableCollarForm(request.POST, instance=collar)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Collar)
             messages.success(request, "Producto actualizado correctamente.")
             return redirect('datatable4')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableCollarForm(instance=collar)
-    return render(request, 'gestorProductos/editarProductoCollar.html', {'form': form, 'collar': collar})
+    
+    return render(request, 'gestorProductos/editarProductoCollar.html', {
+        'form': form, 
+        'collar': collar,
+        'imagenes': imagenes_existentes
+    })
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR CAMA
@@ -541,17 +703,25 @@ def eliminarProductoCama(request, codigo):
 
 def editarProductoCama(request, codigo):
     cama = get_object_or_404(Cama, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(cama, Cama)
+    
     if request.method == 'POST':
         form = DatatableCamaForm(request.POST, instance=cama)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Cama)
             messages.success(request, "Producto actualizado correctamente.")
             return redirect('datatable4')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableCamaForm(instance=cama)
-    return render(request, 'gestorProductos/editarProductoCama.html', {'form': form, 'cama': cama})
+    
+    return render(request, 'gestorProductos/editarProductoCama.html', {
+        'form': form, 
+        'cama': cama,
+        'imagenes': imagenes_existentes
+    })
 
 # ========================================
 # VISTAS DE ELIMINAR Y EDITAR JUGUETE
@@ -568,17 +738,25 @@ def eliminarProductoJuguete(request, codigo):
 
 def editarProductoJuguete(request, codigo):
     juguete = get_object_or_404(Juguete, codigo=codigo)
+    imagenes_existentes = obtener_imagenes_producto(juguete, Juguete)
+    
     if request.method == 'POST':
         form = DatatableJugueteForm(request.POST, instance=juguete)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Juguete)
             messages.success(request, "Producto actualizado correctamente.")
             return redirect('datatable4')
         else:
             messages.error(request, "Error al actualizar el producto.")
     else:
         form = DatatableJugueteForm(instance=juguete)
-    return render(request, 'gestorProductos/editarProductoJuguete.html', {'form': form, 'juguete': juguete})
+    
+    return render(request, 'gestorProductos/editarProductoJuguete.html', {
+        'form': form, 
+        'juguete': juguete,
+        'imagenes': imagenes_existentes
+    })
 
 # ========================================
 # REGISTRAR LOS DATOS EN FORMULARIOS
@@ -588,7 +766,8 @@ def crear_alimentopa(request):
     if request.method == "POST":
         form = PAProductosForm(request.POST)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, PAProductos)
             messages.success(request, "Producto creado correctamente.")
             return redirect('datatable')
         else:
@@ -600,9 +779,10 @@ def crear_alimentopc(request):
     if request.method == "POST":
         form = PCProductosForm(request.POST)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, PCProductos)
             messages.success(request, "Producto creado correctamente.")
-            return redirect('datatable')  # Redirige al catálogo de perros
+            return redirect('datatable')
         else:
             messages.error(request, "Error al crear el producto. Verifica los datos.")
     return render(request, 'gestorProductos/crearProductoPC.html', {'form': form})
@@ -612,7 +792,8 @@ def crear_alimentops(request):
     if request.method == "POST":
         form = PSProductosForm(request.POST)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, PSProductos)
             messages.success(request, "Producto creado correctamente.")
             return redirect('datatable')
         else:
@@ -624,7 +805,8 @@ def crear_snackp(request):
     if request.method == "POST":
         form = SnackPProductosForm(request.POST)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, SnackPProductos)
             messages.success(request, "Producto creado correctamente.")
             return redirect('datatable')
         else:
@@ -636,7 +818,8 @@ def crear_alimentoga(request):
     if request.method == "POST":
         form = AGAProductosForm(request.POST)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, AGAProductos)
             messages.success(request, "Producto creado correctamente.")
             return redirect('datatable2')
         else:
@@ -648,7 +831,8 @@ def crear_alimentogc(request):
     if request.method == "POST":
         form = AGCProductosForm(request.POST)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, AGCProductos)
             messages.success(request, "Producto creado correctamente.")
             return redirect('datatable2')
         else:
@@ -660,7 +844,8 @@ def crear_snackg(request):
     if request.method == "POST":
         form = SnackGProductosForm(request.POST)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, SnackGProductos)
             messages.success(request, "Producto creado correctamente.")
             return redirect('datatable2')
         else:
@@ -672,7 +857,8 @@ def crear_antiparasitario(request):
     if request.method == "POST":
         form = AntiparasitarioForm(request.POST)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Antiparasitario)
             messages.success(request, "Producto creado correctamente.")
             return redirect('datatable3')
         else:
@@ -683,25 +869,25 @@ def crear_shampoo(request):
     if request.method == "POST":
         form = ShampooForm(request.POST)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Shampoo)
             messages.success(request, "Shampoo creado correctamente.", extra_tags='shampoo')
             return redirect('datatable3')
         else:
-            # No redirigir si hay errores, mostrar en la misma página
             messages.error(request, "Error al crear el shampoo. Verifica los datos.", extra_tags='shampoo')
     else:
         form = ShampooForm()
-    return render(request, 'gestorProductos/editarProductoShampoo.html', {'form': form, 'is_creating': True})
+    return render(request, 'gestorProductos/crearShampoo.html', {'form': form, 'is_creating': True})
 
 def crear_medicamentos(request):
     if request.method == "POST":
         form = MedicamentoForm(request.POST)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Medicamento)
             messages.success(request, "Medicamento creado correctamente.", extra_tags='medicamento')
             return redirect('datatable3')
         else:
-            # No redirigir si hay errores, mostrar en la misma página
             messages.error(request, "Error al crear el medicamento. Verifica los datos.", extra_tags='medicamento')
     else:
         form = MedicamentoForm()
@@ -712,11 +898,12 @@ def crear_collares(request):
     if request.method == "POST":
         form = CollarForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Producto creado correctamente.")
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Collar)
+            messages.success(request, "Collar creado correctamente.")
             return redirect('datatable4')
         else:
-            messages.error(request, "Error al crear el producto. Verifica los datos.")
+            messages.error(request, "Error al crear el collar. Verifica los datos.")
     return render(request, 'gestorProductos/crearCollares.html', {'form': form})
 
 def crear_camas(request):
@@ -724,11 +911,12 @@ def crear_camas(request):
     if request.method == "POST":
         form = CamaForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Producto creado correctamente.")
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Cama)
+            messages.success(request, "Cama creada correctamente.")
             return redirect('datatable4')
         else:
-            messages.error(request, "Error al crear el producto. Verifica los datos.")
+            messages.error(request, "Error al crear la cama. Verifica los datos.")
     return render(request, 'gestorProductos/crearCamas.html', {'form': form})
 
 def crear_juguetes(request):
@@ -736,11 +924,12 @@ def crear_juguetes(request):
     if request.method == "POST":
         form = JugueteForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Producto creado correctamente.")
+            producto = form.save()
+            procesar_imagenes_producto(request, producto, Juguete)
+            messages.success(request, "Juguete creado correctamente.")
             return redirect('datatable4')
         else:
-            messages.error(request, "Error al crear el producto. Verifica los datos.")
+            messages.error(request, "Error al crear el juguete. Verifica los datos.")
     return render(request, 'gestorProductos/crearJuguetes.html', {'form': form})
 
 def ProductoPCRegistro(request):
@@ -1148,15 +1337,18 @@ def guardar_producto(request):
 def alimentoGatoAData(request):
     # Mostrar todos los productos sin límite
     agaproductos = AGAProductos.objects.all().order_by()
+    agaproductos = agregar_imagenes_a_productos(agaproductos, AGAProductos)
     return render(request, 'gestorProductos/alimentoGAdulto.html', {'agaproductos': agaproductos})
 
 def alimentoGatoCData(request):
     # Mostrar todos los productos sin límite
     agcproductos = AGCProductos.objects.all().order_by()
+    agcproductos = agregar_imagenes_a_productos(agcproductos, AGCProductos)
     return render(request, 'gestorProductos/alimentoGCachorro.html', {'agcproductos': agcproductos})
 
 def Snack_gato(request):
     snackgproductos = SnackGProductos.objects.all().order_by()
+    snackgproductos = agregar_imagenes_a_productos(snackgproductos, SnackGProductos)
     return render(request, 'gestorProductos/snackGato.html', {'snackgproductos': snackgproductos})
 
 # ===========================
@@ -1165,6 +1357,7 @@ def Snack_gato(request):
 
 def Snack_Perro(request):
     snackpproductos = SnackPProductos.objects.all().order_by()
+    snackpproductos = agregar_imagenes_a_productos(snackpproductos, SnackPProductos)
     return render(request, 'gestorProductos/snackPerro.html', {'snackpproductos': snackpproductos})
 
 # ===========================
@@ -1172,27 +1365,33 @@ def Snack_Perro(request):
 # ===========================
 def medicamentos(request):
     medicamento = Medicamento.objects.all().order_by()
+    medicamento = agregar_imagenes_a_productos(medicamento, Medicamento)
     return render(request, 'gestorProductos/medicamentos.html', {'medicamento': medicamento})
 
 def antiparasitarios(request):
     antiparasitario = Antiparasitario.objects.all().order_by()
+    antiparasitario = agregar_imagenes_a_productos(antiparasitario, Antiparasitario)
     return render(request, 'gestorProductos/antiparasitario.html', {'antiparasitario': antiparasitario})
 
 
 def shampoos(request):
     shampoo = Shampoo.objects.all().order_by()
+    shampoo = agregar_imagenes_a_productos(shampoo, Shampoo)
     return render(request, 'gestorProductos/shampoo.html', {'shampoo': shampoo})
 
 def camas(request):
     cama = Cama.objects.all().order_by()
+    cama = agregar_imagenes_a_productos(cama, Cama)
     return render(request, 'gestorProductos/camas.html', {'cama': cama})
 
 def collares(request):
     collar = Collar.objects.all().order_by()
+    collar = agregar_imagenes_a_productos(collar, Collar)
     return render(request, 'gestorProductos/collares.html', {'collar': collar})
 
 def juguetes(request):
     juguete = Juguete.objects.all().order_by()
+    juguete = agregar_imagenes_a_productos(juguete, Juguete)
     return render(request, 'gestorProductos/juguetes.html', {'juguete': juguete})
 
 # ===========================
@@ -1273,6 +1472,10 @@ def agregar_carrito(request, tipo, producto_id):
     except (ValueError, TypeError):
         cantidad = 1
 
+    # Obtener imagen principal del producto
+    imagenes = obtener_imagenes_producto(producto, modelo)
+    imagen_url = imagenes[0].url_imagen if imagenes else ""
+
     # session cart
     carrito = request.session.get("carrito", {})
 
@@ -1289,8 +1492,8 @@ def agregar_carrito(request, tipo, producto_id):
             "precio": precio_unit,
             "cantidad": cantidad,
             "subtotal": round(precio_unit * cantidad, 2),
-            # opcional: agregar imagen url si quieres mostrarlo en carrito
-            "imagen": getattr(producto, "imagen").url if getattr(producto, "imagen", None) else "",
+            # Imagen desde ImagenProducto
+            "imagen": imagen_url,
         }
     else:
         # sumar cantidad
@@ -1320,6 +1523,38 @@ def actualizar_carrito(request):
 
         request.session["carrito"] = carrito
 
+    return redirect("ver_carrito")
+
+# --- ACTUALIZAR CANTIDAD DE UN PRODUCTO (INCREMENTAR/DECREMENTAR) ---
+def actualizar_cantidad_producto(request, key):
+    """
+    Actualiza la cantidad de un producto específico en el carrito.
+    Espera un parámetro 'accion' que puede ser 'incrementar' o 'decrementar'.
+    """
+    from urllib.parse import unquote
+    
+    if request.method == "POST":
+        carrito = request.session.get("carrito", {})
+        
+        # Decodificar la key en caso de que esté codificada
+        key_decoded = unquote(key)
+        
+        if key_decoded in carrito:
+            accion = request.POST.get("accion", "incrementar")
+            
+            if accion == "incrementar":
+                carrito[key_decoded]["cantidad"] += 1
+            elif accion == "decrementar":
+                # No permitir cantidades menores a 1
+                if carrito[key_decoded]["cantidad"] > 1:
+                    carrito[key_decoded]["cantidad"] -= 1
+            
+            # Recalcular subtotal
+            carrito[key_decoded]["subtotal"] = round(carrito[key_decoded]["cantidad"] * carrito[key_decoded]["precio"], 2)
+            
+            request.session["carrito"] = carrito
+            request.session.modified = True
+    
     return redirect("ver_carrito")
 
 # --- ELIMINAR PRODUCTO ---

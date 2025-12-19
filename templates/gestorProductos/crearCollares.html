@@ -1,63 +1,433 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar cliente</title>
+    <title>Registrar Collar</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
+        body {
+            background: linear-gradient(135deg, #ffb6c1, #8a2be2);
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            padding: 0.75rem 1rem;
+        }
+
+        .form-container {
+            background: linear-gradient(145deg, #ffffff 0%, #fff5f8 100%);
+            border-radius: 14px;
+            padding: 1.15rem 1.3rem;
+            max-width: 650px;
+            margin: 0 auto;
+            box-shadow: 0 15px 40px rgba(214, 51, 132, 0.15), 0 6px 15px rgba(214, 51, 132, 0.1);
+            border: 1px solid rgba(214, 51, 132, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #d63384 0%, #a51755 100%);
+        }
+
+        .form-container::after {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -30%;
+            width: 150%;
+            height: 150%;
+            background: radial-gradient(circle, rgba(214, 51, 132, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .form-title {
+            font-weight: 700;
+            color: #5a1d9e;
+            margin-bottom: 0.25rem;
+            text-align: center;
+            font-size: 1.35rem;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #455a64;
+            margin-bottom: 0.25rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.2px;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid rgba(214, 51, 132, 0.25);
+            border-radius: 7px;
+            padding: 0.4rem 0.7rem;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            background: linear-gradient(145deg, #ffffff 0%, #fffafb 100%);
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #d63384;
+            background: linear-gradient(145deg, #ffffff 0%, #fff5f7 100%);
+            box-shadow: 0 0 0 0.2rem rgba(214, 51, 132, 0.2), 0 4px 12px rgba(214, 51, 132, 0.15);
+            outline: none;
+        }
+
+        .form-control:hover, .form-select:hover {
+            border-color: rgba(214, 51, 132, 0.4);
+            background: linear-gradient(145deg, #ffffff 0%, #fff5f7 100%);
+        }
+
+        .mb-3 {
+            margin-bottom: 0.65rem;
+        }
+
+        .btn {
+            padding: 0.45rem 1rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            border-radius: 7px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.3px;
+            text-transform: none;
+            position: relative;
+            z-index: 1;
+            border: none;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #d63384 0%, #a51755 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(214, 51, 132, 0.3);
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #a51755 0%, #8b1143 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(214, 51, 132, 0.4);
+            color: #ffffff;
+        }
+
+        .btn-info:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #c93a7a 0%, #b82a69 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(201, 58, 122, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #b82a69 0%, #a51f58 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201, 58, 122, 0.4);
+            color: #ffffff;
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            position: relative;
+            z-index: 1;
+        }
+
+        .text-danger {
+            font-size: 0.75rem;
+            margin-top: 0.15rem;
+            font-weight: 500;
+        }
+        .imagenes-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid rgba(214, 51, 132, 0.2);
+        }
+        .imagen-input-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .imagen-input-group input {
+            flex: 1;
+        }
+        .btn-agregar-imagen {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            background: linear-gradient(135deg, #d63384 0%, #a51755 100%);
+            border: none;
+            color: white;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-agregar-imagen:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(214, 51, 132, 0.3);
+        }
+        .preview-imagenes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .preview-imagen-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid rgba(214, 51, 132, 0.2);
+            background: #fffafb;
+        }
+        .preview-imagen-item img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            display: block;
+        }
+        .preview-imagen-item .btn-eliminar {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        .preview-imagen-item .btn-eliminar:hover {
+            background: rgba(220, 53, 69, 1);
+        }
+        .imagen-input-url {
+            border: 2px solid rgba(214, 51, 132, 0.25);
+            border-radius: 7px;
+            padding: 0.4rem 0.7rem;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            background: linear-gradient(145deg, #ffffff 0%, #fffafb 100%);
+        }
+        .imagen-input-url:focus {
+            border-color: #d63384;
+            background: linear-gradient(145deg, #ffffff 0%, #fff5f7 100%);
+            box-shadow: 0 0 0 0.2rem rgba(214, 51, 132, 0.2), 0 4px 12px rgba(214, 51, 132, 0.15);
+            outline: none;
+        }
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1rem 0.85rem;
+                border-radius: 10px;
+            }
+            .form-title {
+                font-size: 1.2rem;
+            }
+            body {
+                padding: 0.5rem 0.5rem;
+            }
+            .preview-imagenes {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 0.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container my-5 ">
-        <div class="alert alert-info display-1 text-center mb-5 ">
-            <strong>Registro</strong>
+    <div class="container my-5">
+        <div class="form-container">
+            <h1 class="form-title">Registrar Collar</h1>
+            <p class="form-subtitle">Complete los campos para registrar un nuevo producto</p>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" style="position: relative; z-index: 1;">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Errores en el formulario:</strong>
+                        <ul>
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ field }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- Código -->
+                <div class="mb-3">
+                    <label for="id_codigo" class="form-label">Código *</label>
+                    {{ form.codigo }}
+                    {% if form.codigo.errors %}
+                        <div class="text-danger">{{ form.codigo.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Nombre -->
+                <div class="mb-3">
+                    <label for="id_nombre" class="form-label">Nombre *</label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                        <div class="text-danger">{{ form.nombre.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Marca -->
+                <div class="mb-3">
+                    <label for="id_marca" class="form-label">Marca *</label>
+                    {{ form.marca }}
+                    {% if form.marca.errors %}
+                        <div class="text-danger">{{ form.marca.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Precio -->
+                <div class="mb-3">
+                    <label for="id_precio" class="form-label">Precio *</label>
+                    {{ form.precio }}
+                    {% if form.precio.errors %}
+                        <div class="text-danger">{{ form.precio.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Stock -->
+                <div class="mb-3">
+                    <label for="id_stock" class="form-label">Stock *</label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}
+                        <div class="text-danger">{{ form.stock.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Descripción -->
+                <div class="mb-3">
+                    <label for="id_descripcion" class="form-label">Descripción *</label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <div class="text-danger">{{ form.descripcion.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tamaño -->
+                <div class="mb-3">
+                    <label for="id_tamaño" class="form-label">Tamaño</label>
+                    {{ form.tamaño }}
+                    {% if form.tamaño.errors %}
+                        <div class="text-danger">{{ form.tamaño.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Material -->
+                <div class="mb-3">
+                    <label for="id_material" class="form-label">Material</label>
+                    {{ form.material }}
+                    {% if form.material.errors %}
+                        <div class="text-danger">{{ form.material.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Imágenes -->
+                <div class="imagenes-section">
+                    <label class="form-label">Imágenes del Producto</label>
+                    <div class="imagen-input-group">
+                        <input type="url" id="input-url-imagen" class="form-control imagen-input-url" placeholder="https://ejemplo.com/imagen.jpg">
+                        <button type="button" class="btn-agregar-imagen" onclick="agregarImagen()">Agregar</button>
+                    </div>
+                    <div class="preview-imagenes" id="preview-imagenes"></div>
+                    <div id="hidden-imagenes-inputs"></div>
+                </div>
+
+                <!-- Botones -->
+                <div class="d-flex justify-content-between gap-2" style="border-top: 2px solid rgba(214, 51, 132, 0.2); padding-top: 0.6rem; margin-top: 0.5rem; position: relative; z-index: 1;">
+                    <a href="{% url 'datatable4' %}" class="btn btn-primary flex-fill">Volver</a>
+                    <input type="submit" value="Registrar" class="btn btn-info flex-fill">
+                </div>
+            </form>
         </div>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show col-8 offset-2" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    <form method="post" class="col-8 offset-2 border border-dark-subtle border-2 rounded p-4 bg-light ">
-        {% csrf_token %}
-        
-        {% if form.errors %}
-            <div class="alert alert-danger">
-                <strong>Errores en el formulario:</strong>
-                <ul>
-                    {% for field, errors in form.errors.items %}
-                        {% for error in errors %}
-                            <li>{{ field }}: {{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
-        
-        {{ form.as_p }}
-        <!-- Botones Volver y Registrar -->
-        <div class="d-flex justify-content-between mt-3">
-            <a href="{% url 'datatable4' %}" class="btn btn-primary me-4">Volver</a>
-            <input type="submit" value="Registrar" class="btn btn-info">
-        </div>
-    </form>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script>
-        // Cerrar alertas automáticamente después de 5 segundos
-        document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                setTimeout(function() {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                }, 5000);
+        let imagenes = []; let contadorImagenes = 0;
+        function agregarImagen() {
+            const input = document.getElementById('input-url-imagen');
+            const url = input.value.trim();
+            if (!url) { alert('Por favor ingresa una URL válida'); return; }
+            try { new URL(url); } catch (e) { alert('Por favor ingresa una URL válida (debe comenzar con http:// o https://)'); return; }
+            imagenes.push({id: contadorImagenes++, url: url, orden: imagenes.length});
+            input.value = '';
+            actualizarPreview();
+        }
+        function eliminarImagen(id) {
+            imagenes = imagenes.filter(img => img.id !== id);
+            imagenes.forEach((img, index) => { img.orden = index; });
+            actualizarPreview();
+        }
+        function actualizarPreview() {
+            const preview = document.getElementById('preview-imagenes');
+            const hiddenInputs = document.getElementById('hidden-imagenes-inputs');
+            preview.innerHTML = '';
+            hiddenInputs.innerHTML = '';
+            imagenes.forEach(imagen => {
+                const div = document.createElement('div');
+                div.className = 'preview-imagen-item';
+                div.innerHTML = `<img src="${imagen.url}" alt="Preview" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%23999%22 font-family=%22sans-serif%22 font-size=%2214%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3EError%3C/text%3E%3C/svg%3E'"><button type="button" class="btn-eliminar" onclick="eliminarImagen(${imagen.id})">×</button>`;
+                preview.appendChild(div);
+                const urlInput = document.createElement('input');
+                urlInput.type = 'hidden';
+                urlInput.name = 'urls_imagenes[]';
+                urlInput.value = imagen.url;
+                const ordenInput = document.createElement('input');
+                ordenInput.type = 'hidden';
+                ordenInput.name = 'ordenes_imagenes[]';
+                ordenInput.value = imagen.orden;
+                hiddenInputs.appendChild(urlInput);
+                hiddenInputs.appendChild(ordenInput);
             });
+        }
+        document.getElementById('input-url-imagen').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); agregarImagen(); }
         });
     </script>
 </body>

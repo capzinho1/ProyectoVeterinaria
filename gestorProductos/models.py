@@ -270,3 +270,29 @@ class Carrito(models.Model):
 
     def __str__(self):
         return f"{self.usuario.username} - {self.producto} x {self.cantidad}"
+
+
+# -------------------------------
+# IMÁGENES DE PRODUCTOS
+# -------------------------------
+
+class ImagenProducto(models.Model):
+    """
+    Modelo para almacenar múltiples imágenes de productos usando GenericForeignKey.
+    Permite relacionar imágenes con cualquier tipo de producto.
+    """
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    producto = GenericForeignKey('content_type', 'object_id')
+    
+    url_imagen = models.URLField(max_length=500, verbose_name="URL de la imagen")
+    orden = models.PositiveIntegerField(default=0, help_text="Orden de visualización (0 = primera)")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['orden', 'fecha_creacion']
+        verbose_name = "Imagen de Producto"
+        verbose_name_plural = "Imágenes de Productos"
+    
+    def __str__(self):
+        return f"Imagen de {self.producto} (Orden: {self.orden})"

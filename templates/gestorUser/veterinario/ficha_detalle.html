@@ -2,10 +2,359 @@
 
 {% block titulo %}Ficha Clínica - {{ ficha.mascota.nombre }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Estilo minimalista tipo bordes y espacios (máximo 15% opacidad) */
+    
+    /* Título centrado con subrayado */
+    h2 {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 1.75rem;
+        margin-bottom: 2.5rem;
+        text-align: center;
+        padding-bottom: 1rem;
+        position: relative;
+    }
+    
+    h2::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background: rgba(30, 209, 218, 0.15);
+        border-radius: 2px;
+    }
+    
+    h2 i {
+        color: rgba(30, 209, 218, 0.7);
+        margin-right: 0.5rem;
+    }
+    
+    /* Cards con bordes más marcados */
+    .card {
+        background: #ffffff;
+        border: 2px solid rgba(30, 209, 218, 0.2);
+        border-radius: 12px;
+        box-shadow: 0 0 0 1px rgba(30, 209, 218, 0.1);
+        transition: all 0.2s ease;
+        overflow: hidden;
+    }
+    
+    .card:hover {
+        border-color: rgba(30, 209, 218, 0.35);
+        box-shadow: 0 2px 8px rgba(30, 209, 218, 0.15);
+    }
+    
+    /* Headers con fondo sutil y bordes redondeados */
+    h5 {
+        color: #495057;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        padding: 0.625rem 1rem;
+        background: rgba(30, 209, 218, 0.06);
+        border: 1px solid rgba(30, 209, 218, 0.15);
+        border-radius: 6px;
+        display: inline-block;
+        width: 100%;
+    }
+    
+    /* Información general con diseño espaciado */
+    .card-body {
+        padding: 2rem;
+    }
+    
+    .card-body > p {
+        padding: 1rem 0;
+        margin-bottom: 0.75rem;
+        color: #495057;
+        display: flex;
+        align-items: flex-start;
+        border-bottom: 1px solid rgba(30, 209, 218, 0.15);
+        transition: all 0.2s ease;
+    }
+    
+    .card-body > p:last-of-type {
+        border-bottom: none;
+    }
+    
+    .card-body > p:hover {
+        background-color: rgba(30, 209, 218, 0.04);
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+        border-radius: 4px;
+    }
+    
+    .card-body p strong {
+        color: #2c3e50;
+        font-weight: 600;
+        display: inline-block;
+        min-width: 170px;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .card-body p a {
+        color: rgba(30, 209, 218, 0.8);
+        text-decoration: none;
+        transition: color 0.2s ease;
+        position: relative;
+    }
+    
+    .card-body p a::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: rgba(23, 183, 192, 0.5);
+        transition: width 0.2s ease;
+    }
+    
+    .card-body p a:hover {
+        color: rgba(23, 183, 192, 0.9);
+    }
+    
+    .card-body p a:hover::after {
+        width: 100%;
+    }
+    
+    /* Separadores con estilo línea doble */
+    hr {
+        border: none;
+        height: 0;
+        margin: 2rem 0;
+        position: relative;
+    }
+    
+    hr::before,
+    hr::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50px;
+        height: 2px;
+        background: rgba(30, 209, 218, 0.2);
+    }
+    
+    hr::before {
+        top: -4px;
+    }
+    
+    hr::after {
+        top: 4px;
+    }
+    
+    /* Tabla con diseño tipo carta */
+    .table {
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    
+    .table thead th {
+        background: rgba(30, 209, 218, 0.08);
+        color: #495057;
+        font-weight: 600;
+        border-bottom: 3px solid rgba(30, 209, 218, 0.25);
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .table thead th:first-child {
+        border-top-left-radius: 8px;
+    }
+    
+    .table thead th:last-child {
+        border-top-right-radius: 8px;
+    }
+    
+    .table tbody tr {
+        border-bottom: 1px solid rgba(30, 209, 218, 0.12);
+        transition: background-color 0.2s ease;
+    }
+    
+    .table tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 8px;
+    }
+    
+    .table tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 8px;
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(30, 209, 218, 0.06);
+    }
+    
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        color: #495057;
+    }
+    
+    .table tbody td a {
+        color: rgba(30, 209, 218, 0.8);
+        text-decoration: none;
+        position: relative;
+    }
+    
+    .table tbody td a::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: rgba(23, 183, 192, 0.5);
+        transition: width 0.2s ease;
+    }
+    
+    .table tbody td a:hover {
+        color: rgba(23, 183, 192, 0.9);
+    }
+    
+    .table tbody td a:hover::after {
+        width: 100%;
+    }
+    
+    /* List group items con bordes redondeados */
+    .list-group-item {
+        background: #ffffff;
+        border: 2px solid rgba(30, 209, 218, 0.15);
+        border-radius: 8px !important;
+        margin-bottom: 0.75rem;
+        padding: 1rem 1.25rem;
+        transition: all 0.2s ease;
+    }
+    
+    .list-group-item:hover {
+        background-color: rgba(30, 209, 218, 0.06);
+        border-color: rgba(30, 209, 218, 0.3);
+        transform: translateX(4px);
+    }
+    
+    .list-group-item a {
+        color: rgba(30, 209, 218, 0.8);
+        text-decoration: none;
+        position: relative;
+    }
+    
+    .list-group-item a::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: rgba(23, 183, 192, 0.5);
+        transition: width 0.2s ease;
+    }
+    
+    .list-group-item a:hover {
+        color: rgba(23, 183, 192, 0.9);
+    }
+    
+    .list-group-item a:hover::after {
+        width: 100%;
+    }
+    
+    /* Badges */
+    .badge {
+        font-weight: 500;
+        padding: 0.4em 0.75em;
+        border-radius: 6px;
+        font-size: 0.8rem;
+    }
+    
+    /* Valores monetarios */
+    .text-success strong {
+        color: #28a745 !important;
+        font-weight: 600;
+    }
+    
+    /* Secciones de texto con bordes redondeados */
+    .card-body h5 + p {
+        background: rgba(30, 209, 218, 0.05);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 2px solid rgba(30, 209, 218, 0.2);
+        margin-top: 1rem;
+        color: #495057;
+        line-height: 1.7;
+        font-size: 0.95rem;
+    }
+    
+    /* Resumen financiero */
+    .card-body > p strong:first-child {
+        color: #6c757d;
+        font-size: 0.9rem;
+        min-width: 150px;
+    }
+    
+    /* Botones con bordes redondeados */
+    .btn-primary {
+        background: rgba(30, 209, 218, 0.9);
+        border: none;
+        color: #ffffff;
+        font-weight: 500;
+        padding: 0.5rem 1.5rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+        background: rgba(23, 183, 192, 0.95);
+        color: #ffffff;
+    }
+    
+    .btn-outline-primary {
+        border: 1px solid rgba(30, 209, 218, 0.4);
+        color: rgba(30, 209, 218, 0.8);
+        background: transparent;
+        border-radius: 6px;
+    }
+    
+    .btn-outline-primary:hover {
+        background: rgba(30, 209, 218, 0.08);
+        border-color: rgba(30, 209, 218, 0.5);
+        color: rgba(23, 183, 192, 0.9);
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.875rem;
+        font-size: 0.875rem;
+        border-radius: 4px;
+    }
+    
+    /* Texto muted */
+    .text-muted {
+        color: #6c757d !important;
+    }
+    
+    /* Card header con fondo sutil */
+    .card-header {
+        background: rgba(30, 209, 218, 0.06) !important;
+        color: #495057 !important;
+        border-bottom: 2px solid rgba(30, 209, 218, 0.2) !important;
+        padding: 1rem 1.5rem !important;
+        font-weight: 600;
+        border-radius: 12px 12px 0 0;
+    }
+</style>
+{% endblock %}
+
 {% block contenido %}
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="bi bi-file-medical"></i> Ficha Clínica - {{ ficha.mascota.nombre }}</h2>
-            <a href="{% url 'vet_ficha_editar' ficha.id %}" class="btn btn-warning">
+            <a href="{% url 'vet_ficha_editar' ficha.id %}" class="btn btn-primary">
                 <i class="bi bi-pencil"></i> Editar
             </a>
         </div>

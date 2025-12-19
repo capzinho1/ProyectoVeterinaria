@@ -7,6 +7,7 @@ from gestorUser.views import (
     UserUpdateView, UserDeleteView,
     gestionar_citas,
     agendar_cita,
+    obtener_horas_disponibles,
     # Vistas del sistema de veterinario
     vet_perfil, vet_pacientes, vet_paciente_detalle, vet_paciente_crear, vet_paciente_editar,
     vet_fichas_clinicas, vet_ficha_detalle, vet_ficha_crear, vet_ficha_editar,
@@ -41,6 +42,7 @@ urlpatterns = [
     # Appointment scheduling
     path('citas/', gestionar_citas, name='gestionar_citas'),
     path('citas/agendar/', agendar_cita, name='agendar_cita'),
+    path('citas/horas-disponibles/', obtener_horas_disponibles, name='obtener_horas_disponibles'),
 
     # ==================== SISTEMA DE VETERINARIO ====================
     

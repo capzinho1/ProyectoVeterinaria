@@ -276,7 +276,11 @@
             {% for antiparasitario in antiparasitario %}
             <div class="col-md-4 mb-4 d-flex justify-content-center">
                 <div class="card">
-                    <img src="{{ antiparasitario.imagen.url }}" alt="{{ antiparasitario.nombre }}">
+                    {% if antiparasitario.imagen_principal %}
+                        <img src="{{ antiparasitario.imagen_principal.url_imagen }}" alt="{{ antiparasitario.nombre }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300x300/734dff/ffffff?text={{ antiparasitario.nombre|urlencode }}" alt="{{ antiparasitario.nombre }}">
+                    {% endif %}
                     <div class="card-body text-center">
                         <h5 class="card-title">{{ antiparasitario.nombre }}</h5>
                         <p>{{ antiparasitario.descripcion|truncatechars:60 }}</p>
@@ -289,7 +293,11 @@
                             data-nombre="{{ antiparasitario.nombre }}"
                             data-descripcion="{{ antiparasitario.descripcion }}"
                             data-precio="{{ antiparasitario.precio }}"
-                            data-imagen="{{ antiparasitario.imagen.url }}">
+                            {% if antiparasitario.imagen_principal %}
+                            data-imagen="{{ antiparasitario.imagen_principal.url_imagen }}"
+                            {% else %}
+                            data-imagen="https://via.placeholder.com/300x300/734dff/ffffff?text={{ antiparasitario.nombre|urlencode }}"
+                            {% endif %}>
                             Ver Detalle
                         </button>
                     </div>

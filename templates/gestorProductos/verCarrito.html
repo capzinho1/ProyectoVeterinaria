@@ -83,6 +83,28 @@
             box-shadow: 0 0 0 2px rgba(32, 189, 198, 0.25);
         }
 
+        .cantidad-btn {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .cantidad-btn:hover:not(:disabled) {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .cantidad-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .total-box{
             background: linear-gradient(90deg, rgba(32,189,198,0.12), rgba(12,169,112,0.12));
             border-radius:14px;
@@ -165,9 +187,6 @@
     <!-- CARD -->
     <div class="carrito-card">
         {% if carrito %}
-        <form method="post" action="/productos/carrito/actualizar/">
-            {% csrf_token %}
-
             <div class="table-responsive">
                 <table class="table align-middle">
                     <thead class="table-light text-center">
@@ -196,9 +215,20 @@
                         <td class="text-success fw-bold">${{ item.precio|floatformat:2 }}</td>
 
                         <td>
-                            <input type="number" min="1" name="cantidad_{{ key }}"
-                                   value="{{ item.cantidad }}"
-                                   class="form-control qty-input mx-auto">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-secondary cantidad-btn"
+                                        onclick="actualizarCantidad('{{ key }}', 'decrementar')"
+                                        {% if item.cantidad <= 1 %}disabled{% endif %}>
+                                    <i class="bi bi-dash-lg"></i>
+                                </button>
+                                <span class="fw-bold" style="min-width: 40px; display: inline-block;">{{ item.cantidad }}</span>
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-secondary cantidad-btn"
+                                        onclick="actualizarCantidad('{{ key }}', 'incrementar')">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
                         </td>
 
                         <td class="fw-bold">${{ item.subtotal|floatformat:2 }}</td>
@@ -220,7 +250,7 @@
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
 
                 <div class="small-muted w-100">
-                    Puedes ajustar cantidades o eliminar productos.
+                    Usa los botones + y - para ajustar cantidades o eliminar productos.
                 </div>
 
                 <div class="text-end w-100 w-md-auto">
@@ -229,10 +259,6 @@
                     </div>
 
                     <div class="d-flex gap-2 justify-content-end flex-wrap">
-                        <button type="submit" class="btn btn-comprar">
-                            <i class="bi bi-arrow-repeat"></i> Actualizar
-                        </button>
-
                         <a href="/productos/carrito/?clear=1"
                            onclick="return confirm('¿Vaciar carrito completo?');"
                            class="btn btn-outline-danger">
@@ -246,7 +272,6 @@
                 </div>
 
             </div>
-        </form>
 
         {% else %}
         <div class="text-center py-5">
@@ -261,6 +286,32 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+function actualizarCantidad(key, accion) {
+    // Crear un formulario dinámico para hacer POST
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/productos/carrito/actualizar-cantidad/${encodeURIComponent(key)}/`;
+    
+    // Agregar CSRF token
+    const csrfToken = getCookie('csrftoken');
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    // Agregar acción
+    const accionInput = document.createElement('input');
+    accionInput.type = 'hidden';
+    accionInput.name = 'accion';
+    accionInput.value = accion;
+    form.appendChild(accionInput);
+    
+    // Agregar al body y enviar
+    document.body.appendChild(form);
+    form.submit();
+}
+
 function eliminarProducto(tipo, productoId) {
     if (!confirm('¿Eliminar este producto del carrito?')) {
         return;
@@ -272,7 +323,7 @@ function eliminarProducto(tipo, productoId) {
     form.action = `/productos/carrito/eliminar/${tipo}/${productoId}/`;
     
     // Agregar CSRF token
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfToken = getCookie('csrftoken');
     const csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
     csrfInput.name = 'csrfmiddlewaretoken';
@@ -282,6 +333,22 @@ function eliminarProducto(tipo, productoId) {
     // Agregar al body y enviar
     document.body.appendChild(form);
     form.submit();
+}
+
+// Función auxiliar para obtener cookie CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 </script>
 

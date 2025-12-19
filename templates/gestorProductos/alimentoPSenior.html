@@ -246,8 +246,8 @@ v{% load static %}
         <div class="col-md-4 mb-4">
             <div class="card">
 
-                {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}" class="img-card w-100">
+                {% if producto.imagen_principal %}
+                <img src="{{ producto.imagen_principal.url_imagen }}" class="img-card w-100">
                 {% else %}
                 <div style="height:230px;background:#eee;display:flex;align-items:center;justify-content:center;">
                     Sin imagen
@@ -270,7 +270,11 @@ v{% load static %}
                         data-nombre="{{ producto.nombre|escapejs }}"
                         data-descripcion="{{ producto.descripcion|escapejs }}"
                         data-precio="{{ producto.precio }}"
-                        data-imagen="{% if producto.imagen %}{{ producto.imagen.url }}{% endif %}"
+                        {% if producto.imagen_principal %}
+                        data-imagen="{{ producto.imagen_principal.url_imagen }}"
+                        {% else %}
+                        data-imagen=""
+                        {% endif %}
                     >
                         Ver Detalle
                     </button>

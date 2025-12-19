@@ -2,9 +2,10 @@ from django import forms
 from .models import (
     Productos, PCProductos, PAProductos, PSProductos, AProductos,
     Categoria, AGAProductos, AGCProductos, SnackGProductos, SnackPProductos,
-    Antiparasitario, Medicamento, Shampoo, Cama, Collar, Juguete
+    Antiparasitario, Medicamento, Shampoo, Cama, Collar, Juguete, ImagenProducto
 )
 from gestorUser.models import CitaMedica
+from django.contrib.contenttypes.models import ContentType
 
 # -------------------------------
 # FORMULARIOS PRODUCTOS GENERALES
